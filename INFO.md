@@ -1,4 +1,124 @@
 # **webserv/3**
+## 0. Risorse:
+
+Elenco di risorse, **suddivise** per macro-tema, che coprono (quasi) tutti gli aspetti di webserv.
+
+### **Networking**
+
+-   **Beej’s Guide to Network Programming**  
+    [https://beej.us/guide/bgnet/html/](https://beej.us/guide/bgnet/html/)  
+    _La guida più classica per socket in C/C++._
+    
+-   **IBM - Nonblocking I/O and select()**  
+    https://www.ibm.com/docs/en/i/7.1?topic=designs-nonblocking-io  
+    _Approfondimento su I/O non bloccante e `select()` (concetti estesi anche per `poll()` e `epoll()`)._
+    
+-   **Bogotobogo - Sockets Server & Client**  
+    [https://bogotobogo.com/cplusplus/sockets_server_client.php](https://bogotobogo.com/cplusplus/sockets_server_client.php)  
+    _Esempi passo-passo di server e client in C++._
+    
+-   **High-Performance Browser Networking** (Capitoli 1 e 3)  
+    [https://hpbn.co/](https://hpbn.co/)  
+    _Ottimo riferimento per approfondire concetti di rete e performance._
+    
+
+----------
+
+### **HTTP**
+
+-   **MDN - HTTP**  
+    [https://developer.mozilla.org/en-US/docs/Web/HTTP](https://developer.mozilla.org/en-US/docs/Web/HTTP)  
+    _Punto di riferimento per tutti i concetti HTTP (metodi, status code, header, sicurezza)._
+    
+-   **RFC 7230 - HTTP/1.1**  
+    [https://tools.ietf.org/html/rfc7230](https://tools.ietf.org/html/rfc7230)  
+    _Specifica ufficiale di HTTP/1.1 (post RFC 2616)._
+    
+-   **How the web works: HTTP and CGI explained**  
+    [https://www.garshol.priv.no/download/text/http-tut.html](https://www.garshol.priv.no/download/text/http-tut.html)  
+    _Tutorial introduttivo per capire HTTP e CGI insieme._
+    
+-   **HTTP Status Codes**  
+    [https://developer.mozilla.org/en-US/docs/Web/HTTP/Status](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status)  
+    _Elenco dettagliato dei codici di stato HTTP._
+    
+
+----------
+
+### **RFC (di Riferimento Principale)**
+
+-   **RFC 9110 - HTTP Semantics**  
+    https://www.rfc-editor.org/rfc/rfc9110  
+    _Definisce le semantiche HTTP/1.1 aggiornate._
+    
+-   **RFC 9112 - HTTP/1.1**  
+    https://www.rfc-editor.org/rfc/rfc9112  
+    _Specifiche più recenti di HTTP/1.1._
+    
+-   **RFC 6265 - HTTP State Management Mechanism (Cookies)**  
+    [https://datatracker.ietf.org/doc/html/rfc6265](https://datatracker.ietf.org/doc/html/rfc6265)
+    
+-   **RFC 3986 - URI Generic Syntax**  
+    https://www.rfc-editor.org/rfc/rfc3986
+    
+-   **RFC 3875 - CGI**  
+    [https://tools.ietf.org/html/rfc3875](https://tools.ietf.org/html/rfc3875)
+    
+
+----------
+
+### **CGI**
+
+-   **CGI Programming 101**  
+    [http://www.cgi101.com/book/ch1/text.html](http://www.cgi101.com/book/ch1/text.html)  
+    _Spiegazione semplice su come funziona CGI._
+    
+-   **HOW-TO Write a CGI Program in C/C++**  
+    [https://www.purplepixie.org/cgi/howto.php](https://www.purplepixie.org/cgi/howto.php)  
+    _Piccola guida pratica con esempi._
+    
+-   **(Video) Creating a file upload page**  
+    _Youtube/risorse varie, es.: “C++ CGI File Upload Tutorial”_  
+    _Per capire come gestire i form in POST e memorizzare i file._
+    
+
+----------
+
+### **Strumenti & Testing**
+
+-   **curl**  
+    https://curl.se/docs/  
+    _Per testare GET/POST, upload, header personalizzati._
+    
+-   **netcat (nc), telnet**  
+    _Per inviare richieste HTTP “raw” e controllare la risposta._
+    
+-   **Wireshark / tcpdump**  
+    _Per catturare e analizzare traffico di rete, ottimo per debugging avanzato._
+    
+-   **ab (ApacheBench), siege, wrk**  
+    _Strumenti per stress e load test._
+    
+-   **Postman**  
+    _Interfaccia GUI per inviare richieste personalizzate (comodo per test di upload)._
+    
+
+----------
+
+### **Altre Risorse Utili**
+
+-   **nginx Source Code**  
+    [https://github.com/nginx/nginx](https://github.com/nginx/nginx)  
+    _Per vedere come un server HTTP gestisce config e parsing (casi complessi)._
+    
+-   **DigitalOcean - Understanding Nginx Config**  
+    https://www.digitalocean.com/community/tutorials/understanding-nginx-configuration-file-structure-and-configuration-contexts  
+    _Per ispirazione nella creazione del parser di configurazione._
+    
+-   **URL Encoding**  
+    [https://en.wikipedia.org/wiki/Percent-encoding](https://en.wikipedia.org/wiki/Percent-encoding)  
+    _Fondamentale se devi decodificare query string o path._
+
 
 ## 1. Divisione dei Compiti
 
@@ -269,129 +389,6 @@
     -   Guida su `./webserv [config_file]`.
     -   Esempi di configurazione.
     -   & Funzionalità bonus (se implementate).
-
-----------
-
-## 4. Recap Risorse
-
-Elenco di risorse, **suddivise** per macro-tema, che coprono (quasi) tutti gli aspetti di webserv.
-
-### **Networking**
-
--   **Beej’s Guide to Network Programming**  
-    [https://beej.us/guide/bgnet/html/](https://beej.us/guide/bgnet/html/)  
-    _La guida più classica per socket in C/C++._
-    
--   **IBM - Nonblocking I/O and select()**  
-    https://www.ibm.com/docs/en/i/7.1?topic=designs-nonblocking-io  
-    _Approfondimento su I/O non bloccante e `select()` (concetti estesi anche per `poll()` e `epoll()`)._
-    
--   **Bogotobogo - Sockets Server & Client**  
-    [https://bogotobogo.com/cplusplus/sockets_server_client.php](https://bogotobogo.com/cplusplus/sockets_server_client.php)  
-    _Esempi passo-passo di server e client in C++._
-    
--   **High-Performance Browser Networking** (Capitoli 1 e 3)  
-    [https://hpbn.co/](https://hpbn.co/)  
-    _Ottimo riferimento per approfondire concetti di rete e performance._
-    
-
-----------
-
-### **HTTP**
-
--   **MDN - HTTP**  
-    [https://developer.mozilla.org/en-US/docs/Web/HTTP](https://developer.mozilla.org/en-US/docs/Web/HTTP)  
-    _Punto di riferimento per tutti i concetti HTTP (metodi, status code, header, sicurezza)._
-    
--   **RFC 7230 - HTTP/1.1**  
-    [https://tools.ietf.org/html/rfc7230](https://tools.ietf.org/html/rfc7230)  
-    _Specifica ufficiale di HTTP/1.1 (post RFC 2616)._
-    
--   **How the web works: HTTP and CGI explained**  
-    [https://www.garshol.priv.no/download/text/http-tut.html](https://www.garshol.priv.no/download/text/http-tut.html)  
-    _Tutorial introduttivo per capire HTTP e CGI insieme._
-    
--   **HTTP Status Codes**  
-    [https://developer.mozilla.org/en-US/docs/Web/HTTP/Status](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status)  
-    _Elenco dettagliato dei codici di stato HTTP._
-    
-
-----------
-
-### **RFC (di Riferimento Principale)**
-
--   **RFC 9110 - HTTP Semantics**  
-    https://www.rfc-editor.org/rfc/rfc9110  
-    _Definisce le semantiche HTTP/1.1 aggiornate._
-    
--   **RFC 9112 - HTTP/1.1**  
-    https://www.rfc-editor.org/rfc/rfc9112  
-    _Specifiche più recenti di HTTP/1.1._
-    
--   **RFC 6265 - HTTP State Management Mechanism (Cookies)**  
-    [https://datatracker.ietf.org/doc/html/rfc6265](https://datatracker.ietf.org/doc/html/rfc6265)
-    
--   **RFC 3986 - URI Generic Syntax**  
-    https://www.rfc-editor.org/rfc/rfc3986
-    
--   **RFC 3875 - CGI**  
-    [https://tools.ietf.org/html/rfc3875](https://tools.ietf.org/html/rfc3875)
-    
-
-----------
-
-### **CGI**
-
--   **CGI Programming 101**  
-    [http://www.cgi101.com/book/ch1/text.html](http://www.cgi101.com/book/ch1/text.html)  
-    _Spiegazione semplice su come funziona CGI._
-    
--   **HOW-TO Write a CGI Program in C/C++**  
-    [https://www.purplepixie.org/cgi/howto.php](https://www.purplepixie.org/cgi/howto.php)  
-    _Piccola guida pratica con esempi._
-    
--   **(Video) Creating a file upload page**  
-    _Youtube/risorse varie, es.: “C++ CGI File Upload Tutorial”_  
-    _Per capire come gestire i form in POST e memorizzare i file._
-    
-
-----------
-
-### **Strumenti & Testing**
-
--   **curl**  
-    https://curl.se/docs/  
-    _Per testare GET/POST, upload, header personalizzati._
-    
--   **netcat (nc), telnet**  
-    _Per inviare richieste HTTP “raw” e controllare la risposta._
-    
--   **Wireshark / tcpdump**  
-    _Per catturare e analizzare traffico di rete, ottimo per debugging avanzato._
-    
--   **ab (ApacheBench), siege, wrk**  
-    _Strumenti per stress e load test._
-    
--   **Postman**  
-    _Interfaccia GUI per inviare richieste personalizzate (comodo per test di upload)._
-    
-
-----------
-
-### **Altre Risorse Utili**
-
--   **nginx Source Code**  
-    [https://github.com/nginx/nginx](https://github.com/nginx/nginx)  
-    _Per vedere come un server HTTP gestisce config e parsing (casi complessi)._
-    
--   **DigitalOcean - Understanding Nginx Config**  
-    https://www.digitalocean.com/community/tutorials/understanding-nginx-configuration-file-structure-and-configuration-contexts  
-    _Per ispirazione nella creazione del parser di configurazione._
-    
--   **URL Encoding**  
-    [https://en.wikipedia.org/wiki/Percent-encoding](https://en.wikipedia.org/wiki/Percent-encoding)  
-    _Fondamentale se devi decodificare query string o path._
-    
 
 ----------
 Questo **piano di lavoro/studio**:
