@@ -401,6 +401,7 @@ Questo **piano di lavoro/studio**:
 
 ### **possibile tree directory**
 
+```text
 webserv/
 ├── src/                # Codice sorgente del server
 │   ├── core/           # Funzionalità principali (socket, parsing, response)
@@ -438,3 +439,4 @@ webserv/
 │   │   ├── logo.png
 ├── Makefile              # File di compilazione
 └── README.md             # Documentazione del progetto
+```
