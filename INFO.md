@@ -7,6 +7,8 @@ Elenco di risorse, **suddivise** per macro-tema, che coprono (quasi) tutti gli a
 
 -    **achrafelkhnissi**
     [https://github.com/achrafelkhnissi/webserv?tab=readme-ov-file#webserv]
+-    **cclaude**
+    [https://github.com/cclaude42/webserv?tab=readme-ov-file#webserv]
 
 ### **Networking**
 
