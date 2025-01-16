@@ -396,3 +396,45 @@ Questo **piano di lavoro/studio**:
 1.  **Organizza il progetto** in tre aree (Networking, HTTP Parser & Logic, CGI/File Handling).
 2.  **Timeline**
 3.  **Recap risorse** unico e senza duplicati, suddiviso in categorie chiare (Networking, HTTP, RFC, CGI, Strumenti di Test).
+
+-----------
+
+### **possibile tree directory**
+
+webserv/
+├── src/                # Codice sorgente del server
+│   ├── core/           # Funzionalità principali (socket, parsing, response)
+│   │   ├── Server.cpp    # Classe principale del server
+│   │   ├── Server.hpp
+│   │   ├── Socket.cpp    # Gestione dei socket
+│   │   ├── Socket.hpp
+│   │   ├── Request.cpp   # Parsing delle richieste HTTP
+│   │   ├── Request.hpp
+│   │   ├── Response.cpp  # Generazione delle risposte HTTP
+│   │   ├── Response.hpp
+│   │   ├── ...           # Altri file per funzionalità core
+│   ├── config/         # Gestione della configurazione
+│   │   ├── ConfigParser.cpp # Parsing del file di configurazione
+│   │   ├── ConfigParser.hpp
+│   │   ├── ServerConfig.hpp # Strutture dati per la configurazione
+│   ├── cgi/            # Gestione dei CGI
+│   │   ├── CgiHandler.cpp
+│   │   ├── CgiHandler.hpp
+│   ├── utils/          # Funzioni di utilità
+│   │   ├── Utils.cpp
+│   │   ├── Utils.hpp
+│   ├── main.cpp        # Punto di ingresso del programma
+├── include/            # File header condivisi (alternativa a includerli in ogni sottodirectory src/)
+│   ├── Server.hpp
+│   ├── ...
+├── conf/                # File di configurazione di esempio
+│   ├── default.conf
+│   ├── altro.conf
+├── www/                 # Contenuto web statico (pagine, immagini, ecc.)
+│   ├── index.html
+│   ├── css/
+│   │   ├── style.css
+│   ├── images/
+│   │   ├── logo.png
+├── Makefile              # File di compilazione
+└── README.md             # Documentazione del progetto
