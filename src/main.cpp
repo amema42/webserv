@@ -1,4 +1,5 @@
 #include "Parser.hpp"
+#include "HTTPServer.hpp"
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -23,7 +24,7 @@ int main(int argc, char **argv) {
         std::string configContent = readFile(configPath);
         Parser parser;
         Config config = parser.parse(configContent);
-        // Stampa di debug: mostriamo alcune direttive lette
+        // Stampa di debug: direttive lette
         std::cout << "Numero di server configurati: " << config.servers.size() << std::endl;
         for (size_t i = 0; i < config.servers.size(); i++) {
             std::cout << "Server " << i+1 << ":\n";
@@ -34,6 +35,9 @@ int main(int argc, char **argv) {
             std::cout << "\tClient Max Body Size: " << config.servers[i].client_max_body_size << "\n";
             std::cout << "\tNumero di location: " << config.servers[i].locations.size() << "\n";
         }
+        HTTPServer server(config);
+        server.run();
+
     } catch (std::exception &e) {
         std::cerr << "Errore: " << e.what() << std::endl;
         return 1;
