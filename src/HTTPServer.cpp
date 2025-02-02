@@ -1,6 +1,12 @@
 #include "HTTPServer.hpp"
+#include "HTTPRequest.hpp"
+#include "HTTPResponse.hpp"
+
+#include <sstream>
 #include <iostream>
 #include <stdexcept>
+#include <unistd.h>
+#include <fcntl.h>
 #include <vector>
 #include <cstring>
 #include <cstdlib>
@@ -67,6 +73,37 @@ void HTTPServer::initSockets() {
     }
 }
 
+void HTTPServer::handleClientRequest(int client_fd, const std::string &rawRequest) {
+    // 1. Creo un "oggetto" per il parsing della richiesta
+    HTTPRequest request;
+    request.parseRequest(rawRequest);
+
+    // 2. Costruisco una risposta di base
+    HTTPResponse response;
+    response.setStatus(200, "OK");
+    response.setHeader("Content-Type", "text/html");
+    
+    // response example: pagina HTML statica
+    response.body = "<html><body><h1>Ciao, Mondo!</h1></body></html>";
+    
+    // set the **Content-Length** (C++98 usa std::ostringstream per la conversione)
+    std::ostringstream oss;
+    oss << response.body.size();
+    response.setHeader("Content-Length", oss.str());
+
+    // Ottieni la stringa completa della risposta
+    std::string responseStr = response.toString();
+
+    // Sendind the response... (Hopefully:)
+    ssize_t sent = write(client_fd, responseStr.c_str(), responseStr.size());
+    if (sent < 0) {
+        std::cerr << "Errore in write(): " << strerror(errno) << std::endl;
+    }
+
+    // After sending the response , closing the connection (***Va gestito keep-alive?***)
+    close(client_fd);
+}
+
 void HTTPServer::eventLoop() {
     // Qui utilizzare poll() (or equal func) per gestire le I/O su:
     // - Socket di ascolto*
@@ -103,7 +140,7 @@ void HTTPServer::eventLoop() {
         {
             if (pollfds[i].revents & POLLIN)
             {
-                // Se il socket è di ascolto, accetta nuove connessioni
+                // Se il **socket è di ascolto**: **Accetta nuove connessioni**
                 if (std::find(_listenSockets.begin(), _listenSockets.end(), pollfds[i].fd) != _listenSockets.end())
                 {
                     // Accettiamo la connessione
@@ -152,9 +189,16 @@ void HTTPServer::eventLoop() {
                     else
                     {
                         buffer[n] = '\0';
-                        std::cout << "Ricevuto dal fd " << pollfds[i].fd << ": " << buffer << std::endl;
-                        // Qui dovresti inserire la logica per il parsing della richiesta HTTP
-                        // e per la generazione della risposta
+                        std::string rawRequest(buffer);
+                        std::cout << "Ricevuto dal fd " << pollfds[i].fd << ": " << rawRequest << std::endl; /* Buffer -> rawRequest*/
+                        
+                        // chiamo handleClientRequest per processare la richiesta + inviare la risposta
+                        handleClientRequest(pollfds[i].fd, rawRequest);
+                    
+                        // Rimuoviamo il client dalla lista; handleClientRequest ha chiuso il socket
+                        pollfds.erase(pollfds.begin() + i);
+                        --i;
+
                     }
                 }
             }

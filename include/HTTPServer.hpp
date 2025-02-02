@@ -20,6 +20,9 @@ private:
     // helper functions
     void initSockets();
     void eventLoop();
+
+    // Metodo per gestire "una" richiesta del client -> Riceve *fd* del client e la richiesta raw/grezza (rawRequest)
+    void handleClientRequest(int client_fd, const std::string &rawRequest);
 };
 
 #endif
