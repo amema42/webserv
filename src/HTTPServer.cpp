@@ -11,6 +11,9 @@
 #include <cstring>
 #include <cstdlib>
 #include <poll.h>
+#include <cerrno>
+#include <algorithm>
+
 
 // #including libraries /headers for socket programming
 #include <sys/types.h>

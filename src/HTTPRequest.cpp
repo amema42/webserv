@@ -37,8 +37,8 @@ void HTTPRequest::parseRequest(const std::string &rawRequest) {
     std::istringstream headerStream(headerPart);
     std::string requestLine;
     std::getline(headerStream, requestLine);
-    if (requestLine.back() == '\r')
-        requestLine.pop_back();  // rimuovi il \r finale se presente
+    if (!requestLine.empty() && requestLine[requestLine.size() - 1] == '\r')
+        requestLine.erase(requestLine.size() - 1);
 
     std::istringstream requestLineStream(requestLine);
     requestLineStream >> method >> uri >> httpVersion;
@@ -49,8 +49,8 @@ void HTTPRequest::parseRequest(const std::string &rawRequest) {
         if (line.empty() || line == "\r")
             continue;
         // Rimuovi il \r finale, se presente
-        if (!line.empty() && line.back() == '\r')
-            line.pop_back();
+        if (!line.empty() && line[line.size() - 1] == '\r')
+            line.erase(line.size() - 1);
 
         // Cerca il separatore ":"
         std::size_t colonPos = line.find(":");
