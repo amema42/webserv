@@ -33,6 +33,7 @@
 *.dylib
 
 # Executables
+webserv
 *.exe
 *.out
 *.app
@@ -54,6 +55,7 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
 
 ### C++ ###
 # Prerequisites
