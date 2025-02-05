@@ -203,7 +203,7 @@ void HTTPServer::eventLoop() {
                     // Qui gestiresti la comunicazione con un client già connesso
                     // Ad esempio, leggere la richiesta HTTP
                     
-                    ClientConnection *conn = nullptr; // Il fd appartiene a un client già connesso -> Troviamo l'oggetto ClientConnection corrispondente
+                    ClientConnection *conn = NULL; // Il fd appartiene a un client già connesso -> Troviamo l'oggetto ClientConnection corrispondente
                     for (size_t j = 0; j < _clientConnections.size(); ++j) {
                         if (_clientConnections[j]->getFd() == pollfds[i].fd) {
                             conn = _clientConnections[j];
