@@ -1,6 +1,8 @@
 #include "HTTPServer.hpp"
 #include "HTTPRequest.hpp"
 #include "HTTPResponse.hpp"
+#include "ClientConnection.hpp"
+
 
 #include <sstream>
 #include <iostream>
@@ -76,7 +78,7 @@ void HTTPServer::initSockets() {
     }
 }
 
-void HTTPServer::handleClientRequest(int client_fd, const std::string &rawRequest) {
+void HTTPServer::handleClientRequest(ClientConnection *clientConn, const std::string &rawRequest) {
     // 1. Creo un "oggetto" per il parsing della richiesta
     HTTPRequest request;
     request.parseRequest(rawRequest);
@@ -85,7 +87,6 @@ void HTTPServer::handleClientRequest(int client_fd, const std::string &rawReques
     HTTPResponse response;
     response.setStatus(200, "OK");
     response.setHeader("Content-Type", "text/html");
-    
     // response example: pagina HTML statica
     response.body = "<html><body><h1>Ciao, Mondo!</h1></body></html>";
     
@@ -98,13 +99,35 @@ void HTTPServer::handleClientRequest(int client_fd, const std::string &rawReques
     std::string responseStr = response.toString();
 
     // Sendind the response... (Hopefully:)
-    ssize_t sent = write(client_fd, responseStr.c_str(), responseStr.size());
+    ssize_t sent = write(clientConn->getFd(), responseStr.c_str(), responseStr.size());
     if (sent < 0) {
         std::cerr << "Errore in write(): " << strerror(errno) << std::endl;
     }
 
     // After sending the response , closing the connection (***Va gestito keep-alive?***)
-    close(client_fd);
+    //close(client_fd);
+    /* bool keepAlive = false; r.114: part of: keep-alive connection implem. */ 
+    /* Qui viene verificato se IL CLIENT CHIEDE KEEP-ALIVEW
+    if (richiesta contiene "Connection: keep-alive" negli header) :NON chiudiamo la connessione
+    else :chiudiamo la connessione
+    */
+    bool keepAlive = false; 
+    std::map<std::string, std::string>::iterator it = request.headers.find("Connection");
+    if (it != request.headers.end()) {
+        std::string conn = it->second;
+        // Convert w. tolower to avoid case sensitivity 
+        for (size_t i = 0; i < conn.size(); ++i) {
+            conn[i] = tolower(conn[i]);
+        }
+        if (conn == "keep-alive")
+            keepAlive = true;
+    }
+
+    if (!keepAlive) {
+        // Chiudiamo la connessione se non è keep-alive && in caso di keep-alive dopo aver processato la richiesta, va rimossa dal buffer SOLO la parte processata.
+        close(clientConn->getFd());
+    }
+
 }
 
 void HTTPServer::eventLoop() {
@@ -165,8 +188,11 @@ void HTTPServer::eventLoop() {
                     
                     std::cout << "Nuova connessione accettata: fd " << client_fd << std::endl;
 
+                    ClientConnection *newConn = new ClientConnection(client_fd); // Creo un nuovo oggetto ClientConnection per il "nuovo" fd
+                    _clientConnections.push_back(newConn);
+
                     // Aggiungi il client alla lista dei pollfd per monitorarlo
-                    struct pollfd client_pfd;
+                    pollfd client_pfd; /*old ver: struct pollfd client_pfd;*/
                     client_pfd.fd = client_fd;
                     client_pfd.events = POLLIN;  // Monitoriamo per lettura (richieste HTTP)
                     client_pfd.revents = 0;
@@ -176,6 +202,16 @@ void HTTPServer::eventLoop() {
                 {
                     // Qui gestiresti la comunicazione con un client già connesso
                     // Ad esempio, leggere la richiesta HTTP
+                    
+                    ClientConnection *conn = nullptr; // Il fd appartiene a un client già connesso -> Troviamo l'oggetto ClientConnection corrispondente
+                    for (size_t j = 0; j < _clientConnections.size(); ++j) {
+                        if (_clientConnections[j]->getFd() == pollfds[i].fd) {
+                            conn = _clientConnections[j];
+                            break;
+                        }
+                    }
+                    if (!conn) continue;
+
                     char buffer[1024];
                     ssize_t n = read(pollfds[i].fd, buffer, sizeof(buffer) - 1);
                     if (n <= 0)
@@ -185,21 +221,45 @@ void HTTPServer::eventLoop() {
                         else
                             std::cout << "Chiusura della connessione: fd " << pollfds[i].fd << std::endl;
                         close(pollfds[i].fd);
-                        // Rimuovi il pollfd dalla lista
+                        // Rimuovi il pollfd dalla lista + e l'oggetto ClientConnection
                         pollfds.erase(pollfds.begin() + i);
+                        _clientConnections.erase(
+                            std::remove(_clientConnections.begin(), _clientConnections.end(), conn),
+                            _clientConnections.end());
+                        delete conn;
                         --i;
                     }
                     else
                     {
                         buffer[n] = '\0';
-                        std::string rawRequest(buffer);
-                        std::cout << "Ricevuto dal fd " << pollfds[i].fd << ": " << rawRequest << std::endl; /* Buffer -> rawRequest*/
+                        // Add i dati letti al buffer persistente della connection
+                        conn->getBuffer().append(buffer);
+                        std::cout << "Buffer per fd " << conn->getFd() << ": " << conn->getBuffer() << std::endl;
+                        if (conn->hasCompleteRequest()) {
+                            // Qui, per semplicità, consideriamo l'intero buffer come una richiesta
+                            std::string rawRequest = conn->getBuffer();
+                            std::cout << "Richiesta completa dal fd " << conn->getFd() << ": " << rawRequest << std::endl;
                         
-                        // chiamo handleClientRequest per processare la richiesta + inviare la risposta
-                        handleClientRequest(pollfds[i].fd, rawRequest);
-                    
-                        // Rimuoviamo il client dalla lista; handleClientRequest ha chiuso il socket
-                        pollfds.erase(pollfds.begin() + i);
+                        handleClientRequest(conn, rawRequest); // Processa la richiesta
+                        /*Se il client non usa keep-alive, handleClientRequest ha chiuso il socket.
+                        Se invece usa keep-alive, dovrai rimuovere solo la parte processata.
+                        Qui, per semplicità, chiudiamo la connessione dopo aver inviato la risposta:
+                        In una versione avanzata, dovresti analizzare la richiesta e mantenere il buffer.*/
+
+                        // Rimuoviamo il ClientConnection e il relativo pollfd.
+                        for (size_t k = 0; k < pollfds.size(); ++k) 
+                        {
+                            if (pollfds[k].fd == conn->getFd()) 
+                            {
+                                pollfds.erase(pollfds.begin() + k);
+                                break;
+                            }
+                        }
+                        _clientConnections.erase(
+                            std::remove(_clientConnections.begin(), _clientConnections.end(), conn),
+                            _clientConnections.end());
+                        delete conn;
+                            //l'indice per la rimozione
                         --i;
 
                     }
@@ -208,7 +268,7 @@ void HTTPServer::eventLoop() {
         }
     }
 }
-
+}
 void HTTPServer::run() {
     // Start loop degli eventi
     eventLoop();
