@@ -1,0 +1,34 @@
+#ifndef WEBSERV_HPP
+#define WEBSERV_HPP
+
+#include <vector>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <algorithm>
+#include "Server.hpp" 
+
+#define ERROR 0
+#define SERVER 1
+#define OPEN_S_BRACKET 7
+#define IN_SERVER 10
+#define LOCATION_PATH 51
+#define OPEN_L_BRACKET 57
+#define IN_LOCATION 50
+#define LISTEN_ARG 21
+#define SERVER_NAME_ARG 31 // 1 arg
+#define ROOT_ARG 41 // 1 arg
+#define INDEX_ARG 69 // quanti ne vuoi
+#define ERROR_PAGE_ARG 92 // 2 arg
+#define CLIENT_MAX_BODY_SIZE 71 // 1 arg
+#define L_ROOT_ARG 5041 //1 arg
+#define L_INDEX_ARG 5069 //quanti ne vuoi
+#define L_METODS_ARG 5123 //da uno a tre
+#define L_CGI_PATH_ARG 5111 //1 arg
+#define L_CGI_EXTENSION_ARG 5121 //1 arg
+#define L_UPLOAD_STORE_ARG 5131 // 1 arg
+#define L_CLIENT_MAX_BODY_SIZE 5071 //1 arg
+ 
+
+#endif

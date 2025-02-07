@@ -99,19 +99,16 @@ int ParseFileLineByLine(const std::string& filePath)
     while (std::getline(file, line) && x++)
     {
         std::istringstream iss(line);
-        std::string firstWord;
-        std::string secondWord;
-        std::string thirdWord;
-        iss >> firstWord >> secondWord >> thirdWord;
-        while (1)
+        std::string Word;
+        
+        iss >> Word
+        while (Word != "")
         {
-            if (firstWord == "" || "#")
-                break;
            switch (level)
            {
             case 1:
             {
-                if (firstWord == "server" && secondWord == "")
+                if (firstWord == "server" )
                 {
                     level = 2;//level 2 cerca {
                     //crea un server

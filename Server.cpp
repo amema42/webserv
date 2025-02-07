@@ -1,0 +1,136 @@
+#include "Server.hpp"
+#include <algorithm> // Per std::find
+
+Server::Server()
+{
+    std::cout << "Server default constructor" << std::endl;
+    numbers.push_back(LISTEN_ARG);
+    numbers.push_back(SERVER_NAME_ARG);
+    numbers.push_back(ROOT_ARG);
+    numbers.push_back(INDEX_ARG);
+    numbers.push_back(CLIENT_MAX_BODY_SIZE);
+}
+
+Server::~Server()
+{
+    std::cout << "Server destructor" << std::endl;
+    return;
+}
+
+Server::Server(const Server &inst) : type(inst.type), numbers(inst.numbers), listen(inst.listen), server_name(inst.server_name), root(inst.root), error_page(inst.error_page), client_max_body_size(inst.client_max_body_size), index(inst.index), location(inst.location)
+{
+    std::cout << "Server copy constructor" << std::endl;
+    return;
+}
+
+Server &Server::operator=(const Server &inst)
+{
+    if (this != &inst) {
+        type = inst.type;
+        numbers = inst.numbers;
+        listen = inst.listen;
+        server_name = inst.server_name;
+        root = inst.root;
+        error_page = inst.error_page;
+        client_max_body_size = inst.client_max_body_size;
+        index = inst.index;
+        location = inst.location;
+    }
+    return *this;
+}
+
+bool Server::setNumberToZero(int number) 
+{
+    std::vector<int>::iterator it = std::find(numbers.begin(), numbers.end(), number);
+    if (it != numbers.end()) {
+        *it = 0;
+        return true;
+    }
+    return false;
+}
+
+// Implementazione dei setter e getter per i vettori
+void Server::addToListen(const std::string& value) {
+    listen.push_back(value);
+}
+
+std::vector<std::string> Server::getListen() const {
+    return listen;
+}
+
+size_t Server::getListenSize() const {
+    return listen.size();
+}
+
+void Server::addToServerName(const std::string& value) {
+    server_name.push_back(value);
+}
+
+std::vector<std::string> Server::getServerName() const {
+    return server_name;
+}
+
+size_t Server::getServerNameSize() const {
+    return server_name.size();
+}
+
+void Server::addToRoot(const std::string& value) {
+    root.push_back(value);
+}
+
+std::vector<std::string> Server::getRoot() const {
+    return root;
+}
+
+size_t Server::getRootSize() const {
+    return root.size();
+}
+
+void Server::addToErrorPage(const std::vector<std::string>& value) {
+    error_page.push_back(value);
+}
+
+std::vector<std::vector<std::string>> Server::getErrorPage() const {
+    return error_page;
+}
+
+size_t Server::getErrorPageSize() const {
+    return error_page.size();
+}
+
+void Server::addToClientMaxBodySize(const std::string& value) {
+    client_max_body_size.push_back(value);
+}
+
+std::vector<std::string> Server::getClientMaxBodySize() const {
+    return client_max_body_size;
+}
+
+size_t Server::getClientMaxBodySizeSize() const {
+    return client_max_body_size.size();
+}
+
+void Server::addToIndex(const std::string& value) {
+    index.push_back(value);
+}
+
+std::vector<std::string> Server::getIndex() const {
+    return index;
+}
+
+size_t Server::getIndexSize() const {
+    return index.size();
+}
+
+// Implementazione dei setter e getter per il vettore location
+void Server::addLocation(const Location& loc) {
+    location.push_back(loc);
+}
+
+std::vector<Location>& Server::getLocation() {
+    return location;
+}
+
+const std::vector<Location>& Server::getLocation() const {
+    return location;
+}
