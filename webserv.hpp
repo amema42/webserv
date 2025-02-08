@@ -8,6 +8,7 @@
 #include <string>
 #include <algorithm>
 #include "Server.hpp" 
+#include "Location.hpp" 
 
 #define ERROR 0
 #define SERVER 1
@@ -29,6 +30,10 @@
 #define L_CGI_EXTENSION_ARG 5121 //1 arg
 #define L_UPLOAD_STORE_ARG 5131 // 1 arg
 #define L_CLIENT_MAX_BODY_SIZE 5071 //1 arg
- 
+
+bool endsWithSemicolon(const std::string& word);
+bool insertArgInField(std::string& Word, int look_for, std::vector<std::string>& args, int n_line);
+bool insertInMethods(std::istringstream& iss, std::string& Word, int look_for, Location& location, int n_line);
+int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& servers);
 
 #endif

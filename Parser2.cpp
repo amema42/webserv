@@ -13,7 +13,7 @@ devo capire meglio tutte le parole chiave. non sto cancellando ancora nulla
 ma apparte le ultime 2 funzioni il resto è cacca 
 */
 
-std::string FileInString(std::string path)
+std::string FileInString(std::string path)//non serve piu
 {
     std::ifstream file(path);
     std::stringstream buffer;
@@ -21,12 +21,12 @@ std::string FileInString(std::string path)
     return (buffer.str());
 }
 
-bool ContainsSubstringAt(const char* str, const std::string& substr)
+bool ContainsSubstringAt(const char* str, const std::string& substr)//non serve piu
 {
     return std::string(str).find(substr) == 0;
 }
 
-void IterateAndCheckSubstring(const std::string& str, const std::string& substr)
+void IterateAndCheckSubstring(const std::string& str, const std::string& substr)//non serve piu
 {
     const char* cstr = str.c_str();
     while (*cstr)
@@ -106,7 +106,7 @@ int ParseWord(int look_for, std::string Word)
             return L_CLIENT_MAX_BODY_SIZE;   
 		}
     }
-    return 0;
+    return ERROR;//non ha trovato la parola che si aspettava
 }
 
 
@@ -195,89 +195,7 @@ bool insertInMethods(std::istringstream& iss, std::string& Word, int look_for, L
 		return true; // controllo methods finisce qua
 	}
 }
-/*
-va bene per ogni field di server e location tranne index
-diventa false se non trova il numero giusto di argomenti,
- non trova semicolon
-o li trova non attaccati alla parola
-ha un controllo speciale su methods.
-prende come arg un vettore e lo riempe
-ATTENZIONE NON FUNZIONA SOLO CON INDEX e LOCATION
-*/
-bool controlEndFillArgs(std::istringstream& iss, std::string& Word, int look_for, std::vector<std::string>& args, int n_line)
-{
-	int n_words = 1;
-	int server_or_location = 10;
-	if (look_for > 5000) //se è in location
-		int server_or_location = 1000;
-	if (look_for == L_METODS_ARG) //methods, unica eccezione inizia qua
-	{
-		bool get_m = false;
-		bool post_m = false;
-		bool delete_m = false;
-		while (!endsWithSemicolon(Word) && Word != "")
-		{
-			if (Word == "GET" && !get_m)
-				get_m == true;
-			else if (Word == "POST" && !post_m)
-				post_m = true;
-			else if (Word == "DELETE" && !delete_m)
-				delete_m = true;
-			else
-			{
-				std::cout << "syntax error at line " << n_line 
-				<< ": are your methods wright?\n";//trovata parola errata
-				return false;
-			}
-			args.push_back(Word);
-			iss >> Word;
-			
-		}
-		if (Word == "GET;" && !get_m)
-			get_m == true;
-		else if (Word == "POST;" && !post_m)
-			post_m = true;
-		else if (Word == "DELETE;" && !delete_m)
-			delete_m = true;
-		else
-		{
-			std::cout << "syntax error at line " << n_line 
-			<< ": are your methods wright?\n";
-			if (Word == "")
-				std::cout << "';' not found\n";
-			return false;
-		}
-		args.push_back(Word.substr(0, Word.size() - 1));
-		return true; // controllo methods finisce qua
-	}
-	while (!endsWithSemicolon(Word) && Word != "")
-	{
-		args.push_back(Word);
-		n_words++;
-		iss >> Word;
-		if (Word == ";")
-		{
-			std::cout << "syntax error at line " << n_line 
-			<< ": found space before ';' \n";    //se trova ";" da solo va in errore
-			return false;
-		}
-	}
-	if (Word != "")
-	{
-		std::cout << "syntax error at line " << n_line 
-		<< ": are your methods wright?\n";//la stringa finisce senza ";"
-		return false;
-	}
-	else if (look_for % server_or_location != n_words)
-	{
-		std::cout << "syntax error at line " << n_line 
-		<< ": too many or too low args in field\n";
-		return false;
-	}
-	args.push_back(Word.substr(0, Word.size() - 1));
-	return true;
 
-}
 
 /*
 iss controlla per ogni linea tutte le parole.
