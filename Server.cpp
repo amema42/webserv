@@ -1,5 +1,8 @@
 #include "Server.hpp"
-#include <algorithm> // Per std::find
+#include "Location.hpp"
+#include "webserv.hpp"
+#include <algorithm>
+#include <iostream>
 
 Server::Server()
 {
@@ -90,7 +93,7 @@ void Server::addToErrorPage(const std::vector<std::string>& value) {
     error_page.push_back(value);
 }
 
-std::vector<std::vector<std::string>> Server::getErrorPage() const {
+std::vector<std::vector<std::string> > Server::getErrorPage() const {
     return error_page;
 }
 

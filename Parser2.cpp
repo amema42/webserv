@@ -1,4 +1,9 @@
 #include "webserv.hpp"
+#include <fstream>
+#include <sstream>
+#include <iostream>
+#include <vector>
+#include <string>
 /*
 allora il ragionamento voleva essere fare un grosso switch case
 per creare direttamente le classi server e location e iniziare a dare eventuali
@@ -13,36 +18,10 @@ devo capire meglio tutte le parole chiave. non sto cancellando ancora nulla
 ma apparte le ultime 2 funzioni il resto è cacca 
 */
 
-std::string FileInString(std::string path)//non serve piu
-{
-    std::ifstream file(path);
-    std::stringstream buffer;
-    buffer << file.rdbuf();
-    return (buffer.str());
-}
 
-bool ContainsSubstringAt(const char* str, const std::string& substr)//non serve piu
-{
-    return std::string(str).find(substr) == 0;
-}
-
-void IterateAndCheckSubstring(const std::string& str, const std::string& substr)//non serve piu
-{
-    const char* cstr = str.c_str();
-    while (*cstr)
-    {
-        if (ContainsSubstringAt(cstr, substr))
-        {
-            cstr + sizeof(substr);
-            std::cout << "Found substring at position: " << (cstr - str.c_str()) << std::endl;
-        }
-        if (*cstr == 32 )
-        ++cstr;
-    }
-}
 
 int ParseWord(int look_for, std::string Word)
-{
+{ 
     if (look_for == IN_SERVER)
     {
         if (Word == "listen")
@@ -75,7 +54,7 @@ int ParseWord(int look_for, std::string Word)
             return LOCATION_PATH;
 		}
     }
-    else if (look_for = IN_LOCATION)
+    else if (look_for == IN_LOCATION)
     {
         if (Word == "root")
 		{
@@ -123,15 +102,16 @@ bool endsWithSemicolon(const std::string& word)
 
 bool insertArgInField(std::string& Word, int look_for, std::vector<std::string>& args, int n_line)
 {
-	int server_or_location = 10;
+	int server_or_location;
+	server_or_location = 10;
 	if (look_for > 5000) //se è in location
-		int server_or_location = 1000;
-	if (args.size() < look_for % server_or_location || look_for % server_or_location == 9)
+		server_or_location = 1000;
+	if (((static_cast<int>(args.size())) < (look_for % server_or_location)) || ((look_for % server_or_location) == 9))
 	{
 		if (endsWithSemicolon(Word))
 		{
 			args.push_back(Word.substr(0, Word.size() - 1));
-			if (!(args.size() == look_for % server_or_location || look_for == INDEX_ARG))
+			if (!((static_cast<int>(args.size())) == look_for % server_or_location || look_for == INDEX_ARG))
 			{
 				std::cout << "syntax error at line " << n_line 
 				<< "incorrect number of arguments at token: '" << Word << "'\n";		
@@ -141,6 +121,7 @@ bool insertArgInField(std::string& Word, int look_for, std::vector<std::string>&
 
 		}
 		args.push_back(Word);
+
 		return true;
 	}
 	std::cout << "syntax error at line " << n_line 
@@ -151,9 +132,6 @@ bool insertArgInField(std::string& Word, int look_for, std::vector<std::string>&
 
 bool insertInMethods(std::istringstream& iss, std::string& Word, int look_for, Location& location, int n_line)
 {
-	int server_or_location = 10;
-	if (look_for > 5000) //se è in location
-		int server_or_location = 1000;
 	if (look_for == L_METODS_ARG) //methods, unica eccezione inizia qua
 	{
 		bool get_m = false;
@@ -162,7 +140,7 @@ bool insertInMethods(std::istringstream& iss, std::string& Word, int look_for, L
 		while (!endsWithSemicolon(Word) && Word != "")
 		{
 			if (Word == "GET" && !get_m)
-				get_m == true;
+				get_m = true;
 			else if (Word == "POST" && !post_m)
 				post_m = true;
 			else if (Word == "DELETE" && !delete_m)
@@ -178,7 +156,7 @@ bool insertInMethods(std::istringstream& iss, std::string& Word, int look_for, L
 			
 		}
 		if (Word == "GET;" && !get_m)
-			get_m == true;
+			get_m = true;
 		else if (Word == "POST;" && !post_m)
 			post_m = true;
 		else if (Word == "DELETE;" && !delete_m)
@@ -194,6 +172,10 @@ bool insertInMethods(std::istringstream& iss, std::string& Word, int look_for, L
 		location.addToLMethods(Word.substr(0, Word.size() - 1));
 		return true; // controllo methods finisce qua
 	}
+	std::cout << "syntax error at line " << n_line 
+	<< "incorrect number of arguments at token: '" << Word << "'\n";
+	return false;
+
 }
 
 
@@ -209,11 +191,11 @@ vengono progressivamente compilati
 int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& servers)
 {
     int look_for = SERVER;
-    std::ifstream file(filePath);
+    std::ifstream file(filePath.c_str());
     if (!file.is_open())
     {
         std::cerr << "Unable to open file: " << filePath << std::endl;
-		return -1;
+        return -1;
     }
     std::string line;
     int n_line = 1;
@@ -222,16 +204,15 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
         std::istringstream iss(line);
         std::string Word;
         
-        iss >> Word;
-        while (Word != "")
+        while (iss >> Word)
 		{
-            while (Word != "")
-			{
+            
 				if (Word == ";")
 				{
 					look_for = ERROR;
 					std::cout << "syntax error at line " << n_line 
 					<< ": found space before ';'\n";
+					break;
 				}
             	switch (look_for)
 				{
@@ -242,6 +223,7 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
                   			look_for = OPEN_S_BRACKET;
                 			std::cout << "trovato server\n";
                 		}
+						std::cout << "sto per uscire\n";
                 		break;
             		}
             		case OPEN_S_BRACKET:
@@ -284,7 +266,7 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
 						else
 						{
 							std::cout << "syntax error at line " << n_line 
-							<< ": unexpected token '" << Word << "' \n";
+							<< ": unexpected tooooooooooooooooooooooooken '" << Word << "' \n";
 						}
 						break;	
 					}
@@ -334,7 +316,7 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
 					}
 					case ERROR_PAGE_ARG:
 					{
-						servers.back().error_page.emplace_back();
+						servers.back().error_page.push_back(std::vector<std::string>());
 						if (insertArgInField(Word, look_for, servers.back().error_page.back(), n_line))
 						{
 							if (endsWithSemicolon(Word))
@@ -387,6 +369,7 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
 						{
 							std::cout << "trovato '}'\n";
 							look_for = IN_SERVER;
+							break;
 						}
                 		else if ((look_for = ParseWord(look_for, Word))) //cambia look for in base a cio che trova, se trova 0 è errore
                 		{
@@ -396,12 +379,15 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
 								std::cout << "syntax error at line " << n_line 
 								<< ": watch out for '" << Word 
 								<< "' repetition in your conf\n";
+								break;
 							}
+							break;
                 		}
 						else
 						{
 							std::cout << "syntax error at line " << n_line 
 							<< ": unexpected token '" << Word << "' \n";
+							break;
 						}
 					}
 					case L_CGI_EXTENSION_ARG:
@@ -483,9 +469,9 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
             		case ERROR:
                 		file.close();
                 		return 0;
-    			}
-        	}
-			iss >> Word;
+    		}
+			std::cout << "look for =" << look_for << "sono uscito dalo switch\n";
+			std::cout << Word << " è la parola con cui sono uscito\n";
         }
     }   
     file.close();

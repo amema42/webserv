@@ -7,6 +7,8 @@
 #include <sstream>
 #include <string>
 #include <algorithm>
+#include <vector>
+#include <string>
 #include "Server.hpp" 
 #include "Location.hpp" 
 

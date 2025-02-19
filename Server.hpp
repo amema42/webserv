@@ -1,8 +1,10 @@
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
-#include "webserv.hpp"
-#include "Location.hpp"
+#include <string>
+#include <vector>
+
+class Location;
 
 class Server
 {
@@ -14,7 +16,7 @@ class Server
         std::vector<std::string> listen;
         std::vector<std::string> server_name;
         std::vector<std::string> root;
-        std::vector<std::vector<std::string>> error_page;
+        std::vector<std::vector<std::string> > error_page;
         std::vector<std::string> client_max_body_size;
         std::vector<std::string> index;
         std::vector<Location> location;
@@ -39,7 +41,7 @@ class Server
         size_t getRootSize() const;
 
         void addToErrorPage(const std::vector<std::string>& value);
-        std::vector<std::vector<std::string>> getErrorPage() const;
+        std::vector<std::vector<std::string> > getErrorPage() const;
         size_t getErrorPageSize() const;
 
         void addToClientMaxBodySize(const std::string& value);
