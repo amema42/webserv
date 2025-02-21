@@ -44,6 +44,8 @@ Server &Server::operator=(const Server &inst)
 
 bool Server::setNumberToZero(int number) 
 {
+	if (number != 21 && number != 31 && number != 41 && number != 69 && number != 71)
+		return true;
     std::vector<int>::iterator it = std::find(numbers.begin(), numbers.end(), number);
     if (it != numbers.end()) {
         *it = 0;

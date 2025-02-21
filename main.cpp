@@ -94,7 +94,7 @@ void printServerDetails(const std::vector<Server>& servers) {
 int main() 
 {
     std::vector<Server> servers;
-    std::string path = "file1.conf";
+    std::string path = "file3.conf";
 	
     // Chiama una funzione per aggiungere server al vettore
     ParseFileLineByLine(path, servers);

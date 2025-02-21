@@ -104,17 +104,15 @@ bool insertArgInField(std::string& Word, int look_for, std::vector<std::string>&
 {
 	int server_or_location;
 	server_or_location = 10;
-	if (look_for > 5000) //se è in location
-		server_or_location = 1000;
 	if (((static_cast<int>(args.size())) < (look_for % server_or_location)) || ((look_for % server_or_location) == 9))
 	{
 		if (endsWithSemicolon(Word))
 		{
 			args.push_back(Word.substr(0, Word.size() - 1));
+			//int pop = (look_for % server_or_location );
 			if (!((static_cast<int>(args.size())) == look_for % server_or_location || look_for == INDEX_ARG))
 			{
-				std::cout << "syntax error at line " << n_line 
-				<< "incorrect number of arguments at token: '" << Word << "'\n";		
+				std::cout << "syntax error at line " << n_line << "incorrect number of arguments at token: '" << Word << "'\n";		
 				return false;
 			}
 			return true;
@@ -125,7 +123,7 @@ bool insertArgInField(std::string& Word, int look_for, std::vector<std::string>&
 		return true;
 	}
 	std::cout << "syntax error at line " << n_line 
-	<< "incorrect number of arguments at token: '" << Word << "'\n";
+	<< "'" << Word << "'\n";
 	return false;
 }
 
