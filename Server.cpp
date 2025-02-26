@@ -4,6 +4,12 @@
 #include <algorithm>
 #include <iostream>
 
+/*
+dentro ogni server ho caricato un vettore di numeri.
+contiene i numeri delle macro che si possono ripetere una volta sola dentro ogni server,
+ogni voltache viene inserito un field viene "depennato", cosi se è presente due volte lo 
+stesso campo ed è gia stato depennato quel numero il parser andrà in errore.
+*/
 Server::Server()
 {
     std::cout << "Server default constructor" << std::endl;
@@ -42,6 +48,10 @@ Server &Server::operator=(const Server &inst)
     return *this;
 }
 
+
+/*
+controlla se il Field è gia stato messo in questo server, se nonn c'è lo depenna, se gia c'era, ritorna false
+*/
 bool Server::setNumberToZero(int number) 
 {
 	if (number != 21 && number != 31 && number != 41 && number != 69 && number != 71)

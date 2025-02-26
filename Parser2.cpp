@@ -5,17 +5,7 @@
 #include <vector>
 #include <string>
 /*
-allora il ragionamento voleva essere fare un grosso switch case
-per creare direttamente le classi server e location e iniziare a dare eventuali
-syntax error mentre tokenizzavo e conservavo le parole, ma me sa è stata na bella cazzata
-perché ho basato tutto sul gatto di poter avere massimo tre parole su una riga, std::istringstream iss(line);permette di storare le parole saltandotab e spazi.
-comunque look_for 1 è quando cerco il la parola server, look_for 2 cerco {
-look_for 3 cerco una delle parole chiavi che compilano gli attributi del server
-look_for 41 (sarebbe 4-1) siamo entrati dentro location e ci aspettiamo di nuovo {
-incontrare } fa tornare al livello 3
-incontrare } al livello 3 fa tornare al livello 1
-devo capire meglio tutte le parole chiave. non sto cancellando ancora nulla
-ma apparte le ultime 2 funzioni il resto è cacca 
+
 */
 
 
@@ -99,38 +89,47 @@ bool endsWithSemicolon(const std::string& word)
 }
 
 
-
+/*
+mette nei rispettivi vettori dei field gli argomenti.
+controlla se ci sono troppi argomenti in base al field 
+(ad esempio index puo averne infiniti, root solo uno)
+semicolon definisce se ha smesso di inserire argomenti o no.
+per controllare il numero confronta il numero di argomenti nel 
+vettore con l'ultima cofra del "look_for" attuale
+nell'ultima cifra del look_for attuale c'è scritto quanti argomenti puo accettare 
+quel field ad esempio root finisce con 1, error page finisce con 2
+*/
 bool insertArgInField(std::string& Word, int look_for, std::vector<std::string>& args, int n_line)
 {
-	int server_or_location;
-	server_or_location = 10;
-	if (((static_cast<int>(args.size())) < (look_for % server_or_location)) || ((look_for % server_or_location) == 9))
+	if (((static_cast<int>(args.size())) < (look_for % 10)) || ((look_for % 10) == 9))
 	{
+		//std::cout << ((static_cast<int>(args.size())) < (look_for % 10)) << "------\n" ;
 		if (endsWithSemicolon(Word))
 		{
 			args.push_back(Word.substr(0, Word.size() - 1));
-			//int pop = (look_for % server_or_location );
-			if (!((static_cast<int>(args.size())) == look_for % server_or_location || look_for == INDEX_ARG))
+			//int pop = (look_for % 10 );
+			if (!((static_cast<int>(args.size())) == look_for % 10 || look_for == INDEX_ARG))
 			{
 				std::cout << "syntax error at line " << n_line << "incorrect number of arguments at token: '" << Word << "'\n";		
 				return false;
 			}
 			return true;
-
 		}
 		args.push_back(Word);
 
 		return true;
 	}
-	std::cout << "syntax error at line " << n_line 
-	<< "'" << Word << "'\n";
+	std::cout << "syntax error at line " << n_line << "incorrect number of arguments at token: '" << Word << "'\n";	
 	return false;
 }
 
-
+/*
+stessa cosa di insertArgInField ma per i Metodi, controlla che non ci siano ripetizione e che siano i tre concessi
+(ancora da testare)
+*/
 bool insertInMethods(std::istringstream& iss, std::string& Word, int look_for, Location& location, int n_line)
 {
-	if (look_for == L_METODS_ARG) //methods, unica eccezione inizia qua
+	if (look_for == L_METODS_ARG) 
 	{
 		bool get_m = false;
 		bool post_m = false;
@@ -168,7 +167,7 @@ bool insertInMethods(std::istringstream& iss, std::string& Word, int look_for, L
 			return false;
 		}
 		location.addToLMethods(Word.substr(0, Word.size() - 1));
-		return true; // controllo methods finisce qua
+		return true; 
 	}
 	std::cout << "syntax error at line " << n_line 
 	<< "incorrect number of arguments at token: '" << Word << "'\n";
@@ -178,13 +177,15 @@ bool insertInMethods(std::istringstream& iss, std::string& Word, int look_for, L
 
 
 /*
-iss controlla per ogni linea tutte le parole.
+lo stream iss controlla per ogni linea tutte le parole.
 la funzione va per stati definiti in look_for:
 il valore di look_for (sono macro) 
 definisce COSA sta cercndo la funzione,
 se trova quello che cerca va avanti, altrimenti da errore 
 man mano che trova riempe un vettore di istanze di server che 
-vengono progressivamente compilati
+vengono progressivamente compilate. 
+se trova parole che non si aspetta va in errore, controlla che ci siano almeno root server_name e port per chiudere un server,
+controlla non ci siano ripetizioni di campi.
 */
 int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& servers)
 {
@@ -196,8 +197,8 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
         return -1;
     }
     std::string line;
-    int n_line = 1;
-    while (std::getline(file, line) && n_line++)
+    int n_line = 0;
+    while (std::getline(file, line) && ++n_line)
     {
         std::istringstream iss(line);
         std::string Word;
@@ -212,6 +213,7 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
 					<< ": found space before ';'\n";
 					break;
 				}
+				
             	switch (look_for)
 				{
             		case SERVER:
@@ -221,7 +223,14 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
                   			look_for = OPEN_S_BRACKET;
                 			std::cout << "trovato server\n";
                 		}
-						std::cout << "sto per uscire\n";
+						else
+						{
+							look_for = ERROR;
+							std::cout << "syntax error at line " << n_line 
+							<< ": unexpected token: '" << Word 
+							<< "' instead of 'server' \n";
+						}	
+						//std::cout << "sto per uscire\n";
                 		break;
             		}
             		case OPEN_S_BRACKET:
@@ -264,7 +273,7 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
 						else
 						{
 							std::cout << "syntax error at line " << n_line 
-							<< ": unexpected tooooooooooooooooooooooooken '" << Word << "' \n";
+							<< ": unexpected token '" << Word << "' \n";
 						}
 						break;	
 					}
@@ -303,7 +312,7 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
 					}
 					case INDEX_ARG:
 					{
-						if (insertArgInField(Word, look_for, servers.back().root, n_line))
+						if (insertArgInField(Word, look_for, servers.back().index, n_line))
 						{
 							if (endsWithSemicolon(Word))
 								look_for = IN_SERVER;
@@ -471,7 +480,12 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
 			std::cout << "look for =" << look_for << "sono uscito dalo switch\n";
 			std::cout << Word << " è la parola con cui sono uscito\n";
         }
-    }   
+    }
+	//funzione che controlli non ci siano ripetizioni di server name
+	//funzione che controlli non ci siano ripetizioni di port nei vari server
+	//funzione che controlli non ci siano ripetizioni di path per le location di ogni server(?)
+	//funzione che controlli le error page siano corrette;
+
     file.close();
     return 1;
 }
