@@ -485,6 +485,7 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
 	//funzione che controlli non ci siano ripetizioni di port nei vari server
 	//funzione che controlli non ci siano ripetizioni di path per le location di ogni server(?)
 	//funzione che controlli le error page siano corrette;
+	//eventualmente inserendo questi controlli nello switch case potremmo dire all'utente a che riga sta l'errore
 
     file.close();
     return 1;
