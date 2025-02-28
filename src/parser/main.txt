@@ -91,10 +91,10 @@ void printServerDetails(const std::vector<Server>& servers) {
 }
 
 
-int main() 
+int main()
 {
     std::vector<Server> servers;
-    std::string path = "../../config/file3.conf";
+    std::string path = "../../config/error.conf";
 	std::cout << "in main ";
     // Chiama una funzione per aggiungere server al vettore
     ParseFileLineByLine(path, servers);
