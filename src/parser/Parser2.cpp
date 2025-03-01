@@ -176,6 +176,50 @@ bool insertInMethods(std::istringstream& iss, std::string& Word, int look_for, L
 }
 
 
+bool insertArgInMax(std::string& Word, int look_for, std::vector<size_t>& args, int n_line)
+{
+	if (((static_cast<int>(args.size())) < (look_for % 10)) || ((look_for % 10) == 9))
+	{
+		//std::cout << ((static_cast<int>(args.size())) < (look_for % 10)) << "------\n" ;
+		if (endsWithSemicolon(Word))
+		{
+			args.push_back(static_cast<size_t>(std::atoi(Word.substr(0, Word.size() - 2).c_str())));
+			//int pop = (look_for % 10 );
+			if (!((static_cast<int>(args.size())) == look_for % 10 || look_for == INDEX_ARG))
+			{
+				std::cout << "syntax error at line " << n_line << "incorrect number of arguments at token: '" << Word << "'\n";		
+				return false;
+			}
+			return true;
+		}
+		return true;
+	}
+	std::cout << "syntax error at line " << n_line << "incorrect number of arguments at token: '" << Word << "'\n";	
+	return false;
+}
+
+bool insertArgInListen(std::string& Word, int look_for, std::vector<int>& args, int n_line)
+{
+	if (((static_cast<int>(args.size())) < (look_for % 10)) || ((look_for % 10) == 9))
+	{
+		//std::cout << ((static_cast<int>(args.size())) < (look_for % 10)) << "------\n" ;
+		if (endsWithSemicolon(Word))
+		{
+			args.push_back(static_cast<int>(std::atoi(Word.substr(0, Word.size() - 1).c_str())));
+			//int pop = (look_for % 10 );
+			if (!((static_cast<int>(args.size())) == look_for % 10 || look_for == INDEX_ARG))
+			{
+				std::cout << "syntax error at line " << n_line << "incorrect number of arguments at token: '" << Word << "'\n";		
+				return false;
+			}
+			return true;
+		}
+		return true;
+	}
+	std::cout << "syntax error at line " << n_line << "incorrect number of arguments at token: '" << Word << "'\n";	
+	return false;
+}
+
 /*
 lo stream iss controlla per ogni linea tutte le parole.
 la funzione va per stati definiti in look_for:
@@ -239,7 +283,7 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
                 		{
                     		look_for = IN_SERVER;
 							servers.push_back(Server()); // server creato
-                    		std::cout << "trovato '{'\n";
+                    		//std::cout << "trovato '{'\n";
                 		}
                 		break;
             		}
@@ -247,7 +291,7 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
             		{
 						if (Word == "}") //se trova brackets controlla che ci siano i 3 obbligatori, se non li trova va in errore
 						{
-							std::cout << "trovato '}'\n";
+							//std::cout << "trovato '}'\n";
 							if (!servers.back().setNumberToZero(LISTEN_ARG)
 								&& !servers.back().setNumberToZero(SERVER_NAME_ARG)
 								&& !servers.back().setNumberToZero(ROOT_ARG))
@@ -279,7 +323,7 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
 					}
 					case LISTEN_ARG:
 					{
-						if (insertArgInField(Word, look_for, servers.back().listen, n_line))
+						if (insertArgInListen(Word, look_for, servers.back().listen, n_line))
 						{
 							if (endsWithSemicolon(Word))
 								look_for = IN_SERVER;
@@ -335,7 +379,7 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
 					}
 					case CLIENT_MAX_BODY_SIZE:
 					{
-						if (insertArgInField(Word, look_for, servers.back().client_max_body_size,  n_line))
+						if (insertArgInMax(Word, look_for, servers.back().client_max_body_size,  n_line))
 						{
 							if (endsWithSemicolon(Word))
 								look_for = IN_SERVER;
@@ -349,7 +393,7 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
 						if (Word == "{" )
                 		{
                     		look_for = IN_LOCATION;
-                    		std::cout << "trovato '{'\n";
+                    		//std::cout << "trovato '{'\n";
                 		}
 						else
 						{
@@ -374,7 +418,7 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
 					{
 						if (Word == "}") //se trova brackets controlla che ci siano i 3 obbligatori, se non li trova va in errore
 						{
-							std::cout << "trovato '}'\n";
+							//std::cout << "trovato '}'\n";
 							look_for = IN_SERVER;
 							break;
 						}
@@ -464,7 +508,7 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
 					}
 					case L_CLIENT_MAX_BODY_SIZE:
 					{
-						if (insertArgInField(Word, look_for, servers.back().location.back().l_client_max_body_size, n_line))
+						if (insertArgInMax(Word, look_for, servers.back().location.back().l_client_max_body_size, n_line))
 						{
 							if (endsWithSemicolon(Word))
 								look_for = IN_LOCATION;
@@ -477,8 +521,8 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
                 		file.close();
                 		return 0;
     		}
-			std::cout << "look for =" << look_for << "sono uscito dalo switch\n";
-			std::cout << Word << " è la parola con cui sono uscito\n";
+			//std::cout << "look for =" << look_for << "sono uscito dalo switch\n";
+			//std::cout << Word << " è la parola con cui sono uscito\n";
         }
     }
 	//funzione che controlli non ci siano ripetizioni di server name
