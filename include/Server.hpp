@@ -13,11 +13,11 @@ class Server
         std::vector<int> numbers;
 
     public:
-        std::vector<std::string> listen;
+        std::vector<int> listen;
         std::vector<std::string> server_name;
         std::vector<std::string> root;
         std::vector<std::vector<std::string> > error_page;
-        std::vector<std::string> client_max_body_size;
+        std::vector<size_t> client_max_body_size;
         std::vector<std::string> index;
         std::vector<Location> location;
 

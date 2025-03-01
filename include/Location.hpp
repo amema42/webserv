@@ -17,7 +17,7 @@ class Location
         std::vector<std::string> l_cgi_path;
         std::vector<std::string> l_cgi_extension;
         std::vector<std::string> l_upload_store;
-        std::vector<std::string> l_client_max_body_size;
+        std::vector<size_t> l_client_max_body_size;
 
         ~Location(); //def dest
         Location(); //def cost
