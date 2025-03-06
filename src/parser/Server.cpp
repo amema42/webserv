@@ -88,18 +88,6 @@ size_t Server::getRootSize() const {
     return root.size();
 }
 
-void Server::addToErrorPage(const std::vector<std::string>& value) {
-    error_page.push_back(value);
-}
-
-std::vector<std::vector<std::string> > Server::getErrorPage() const {
-    return error_page;
-}
-
-size_t Server::getErrorPageSize() const {
-    return error_page.size();
-}
-
 
 void Server::addToIndex(const std::string& value) {
     index.push_back(value);

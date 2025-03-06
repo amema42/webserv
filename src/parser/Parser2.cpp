@@ -128,7 +128,7 @@ bool insertArgInField(std::string& Word, int look_for, std::vector<std::string>&
 
 bool insertArgInIndex(std::string& Word, std::vector<std::string>& args)
 {
-		//std::cout << ((static_cast<int>(args.size())) < (look_for % 10)) << "------\n" ;
+		std::cout << Word << "\n" ;
 		if (endsWithSemicolon(Word))
 		{
 			args.push_back(Word.substr(0, Word.size() - 1));
@@ -384,15 +384,25 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
 						break;
 					}
 					case ERROR_PAGE_ARG:
-					{
-						servers.back().error_page.push_back(std::vector<std::string>());
-						if (insertArgInField(Word, look_for, servers.back().error_page.back(), n_line))
+					{	std::string errorCode = Word;
+    					std::string errorPage;
+   						if (!(iss >> errorPage))
 						{
-							if (endsWithSemicolon(Word))
-								look_for = IN_SERVER;
-						}
+        					std::cout << "syntax error: missing error page for code " << errorCode << "\n";
+        					look_for = ERROR;
+        					break;
+    					}
+    					if (endsWithSemicolon(errorPage))
+						{
+        					errorPage = errorPage.substr(0, errorPage.size() - 1);
+        					look_for = IN_SERVER;
+    					}
 						else
+						{
 							look_for = ERROR;
+							std::cout << "syntax error: no closed semicolon at line " << n_line << "\n";
+						}
+						servers.back().error_page[errorCode] = errorPage;
 						break;
 					}
 					case CLIENT_MAX_BODY_SIZE:
@@ -539,8 +549,8 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
                 		file.close();
                 		return 0;
     		}
-			//std::cout << "look for =" << look_for << "sono uscito dalo switch\n";
-			//std::cout << Word << " è la parola con cui sono uscito\n";
+			std::cout << "look for =" << look_for << "sono uscito dallo switch\n";
+			std::cout << Word << " è la parola con cui sono uscito\n";
         }
     }
 	//funzione che controlli non ci siano ripetizioni di server name
