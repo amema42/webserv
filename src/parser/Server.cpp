@@ -1,4 +1,4 @@
-#include "webServ.hpp"
+#include "../../include/webServ.hpp"
 #include <algorithm>
 #include <iostream>
 
@@ -63,17 +63,6 @@ bool Server::setNumberToZero(int number)
 }
 
 // Implementazione dei setter e getter per i vettori
-void Server::addToListen(const std::string& value) {
-    listen.push_back(value);
-}
-
-std::vector<std::string> Server::getListen() const {
-    return listen;
-}
-
-size_t Server::getListenSize() const {
-    return listen.size();
-}
 
 void Server::addToServerName(const std::string& value) {
     server_name.push_back(value);
@@ -111,17 +100,6 @@ size_t Server::getErrorPageSize() const {
     return error_page.size();
 }
 
-void Server::addToClientMaxBodySize(const std::string& value) {
-    client_max_body_size.push_back(value);
-}
-
-std::vector<std::string> Server::getClientMaxBodySize() const {
-    return client_max_body_size;
-}
-
-size_t Server::getClientMaxBodySizeSize() const {
-    return client_max_body_size.size();
-}
 
 void Server::addToIndex(const std::string& value) {
     index.push_back(value);

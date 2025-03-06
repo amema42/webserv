@@ -44,8 +44,6 @@ class Location
         void addToLUploadStore(const std::string& value);
         std::vector<std::string> getLUploadStore() const;
 
-        void addToLMaxBodySize(const std::string& value);
-        std::vector<std::string> getLMaxBodySize() const;
 };
 
 #endif
