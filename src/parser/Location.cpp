@@ -29,6 +29,7 @@ Location &Location::operator=(const Location &inst)
     if (this != &inst) {
         type = inst.type;
         numbers = inst.numbers;
+        path = inst.path;
         l_root = inst.l_root;
         l_index = inst.l_index;
         l_methods = inst.l_methods;
