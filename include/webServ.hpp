@@ -6,7 +6,7 @@
 /*   By: jacopo <jacopo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/19 15:06:40 by jacopo            #+#    #+#             */
-/*   Updated: 2025/02/26 15:59:52 by jacopo           ###   ########.fr       */
+/*   Updated: 2025/03/04 15:37:36 by jacopo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,7 @@
 #include <string>
 
 
-#include "../src/cgi/CGIHandler.hpp"
+#include "CGIHandler.hpp"
 #include "./Server.hpp" 
 #include "./Location.hpp" 
 #include "./ClientConnection.hpp"

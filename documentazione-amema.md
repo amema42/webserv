@@ -19,6 +19,7 @@
 
 ### **b. Server HTTP**
 
+
 - **HTTPServer**
   - **Scopo:** Gestire i socket per l’ascolto e la comunicazione con i client in modalità non bloccante, utilizzando `poll()` per gestire I/O.
   
