@@ -6,95 +6,93 @@
 
 
 void printServerDetails(const std::vector<Server>& servers) {
-    for (size_t i = 0; i < servers.size(); ++i) {
-        const Server& server = servers[i];
-        std::cout << "Server " << i + 1 << ":" << std::endl;
+	for (size_t i = 0; i < servers.size(); ++i) {
+		const Server& server = servers[i];
+		std::cout << "Server " << i + 1 << ":" << std::endl;
 
-        std::cout << "  Listen:" << std::endl;
-        for (const auto& item : server.listen) {
-            std::cout << "    " << item << std::endl;
-        }
+		std::cout << "  Listen:" << std::endl;
+		for (const auto& item : server.listen) {
+			std::cout << "    " << item << std::endl;
+		}
 
-        std::cout << "  Server Name:" << std::endl;
-        for (const auto& item : server.server_name) {
-            std::cout << "    " << item << std::endl;
-        }
+		std::cout << "  Server Name:" << std::endl;
+		for (const auto& item : server.server_name) {
+			std::cout << "    " << item << std::endl;
+		}
 
-        std::cout << "  Root:" << std::endl;
-        for (const auto& item : server.root) {
-            std::cout << "    " << item << std::endl;
-        }
+		std::cout << "  Root:" << std::endl;
+		for (const auto& item : server.root) {
+			std::cout << "    " << item << std::endl;
+		}
 
-        std::cout << "  Error Page:" << std::endl;
-        for (const auto& error : server.error_page) {
-            for (const auto& item : error) {
-                std::cout << "    " << item << std::endl;
-            }
-        }
+		std::cout << "  Error Page:" << std::endl;
+		for (const auto& error : server.error_page) {
+			std::cout << "    Error Code: " << error.first << " -> " << error.second << std::endl;
+		}
 
-        std::cout << "  Client Max Body Size:" << std::endl;
-        for (const auto& item : server.client_max_body_size) {
-            std::cout << "    " << item << std::endl;
-        }
+		std::cout << "  Client Max Body Size:" << std::endl;
+		for (const auto& item : server.client_max_body_size) {
+			std::cout << "    " << item << std::endl;
+		}
 
-        std::cout << "  Index:" << std::endl;
-        for (const auto& item : server.index) {
-            std::cout << "    " << item << std::endl;
-        }
+		std::cout << "  Index:" << std::endl;
+		for (const auto& item : server.index) {
+			std::cout << "    " << item << std::endl;
+		}
 
-        std::cout << "  Locations:" << std::endl;
-        for (size_t j = 0; j < server.location.size(); ++j) {
-            const Location& location = server.location[j];
-            std::cout << "    Location " << j + 1 << ":" << std::endl;
+		std::cout << "  Locations:" << std::endl;
+		for (size_t j = 0; j < server.location.size(); ++j) {
+			const Location& location = server.location[j];
+			std::cout << "    Location " << j + 1 << ":" << std::endl;
 
-            std::cout << "      Path:" << std::endl;
-            for (const auto& item : location.path) {
-                std::cout << "        " << item << std::endl;
-            }
+			std::cout << "      Path:" << std::endl;
+			for (const auto& item : location.path) {
+				std::cout << "        " << item << std::endl;
+			}
 
-            std::cout << "      Root:" << std::endl;
-            for (const auto& item : location.l_root) {
-                std::cout << "        " << item << std::endl;
-            }
+			std::cout << "      Root:" << std::endl;
+			for (const auto& item : location.l_root) {
+				std::cout << "        " << item << std::endl;
+			}
 
-            std::cout << "      Index:" << std::endl;
-            for (const auto& item : location.l_index) {
-                std::cout << "        " << item << std::endl;
-            }
+			std::cout << "      Index:" << std::endl;
+			for (const auto& item : location.l_index) {
+				std::cout << "        " << item << std::endl;
+			}
 
-            std::cout << "      Methods:" << std::endl;
-            for (const auto& item : location.l_methods) {
-                std::cout << "        " << item << std::endl;
-            }
+			std::cout << "      Methods:" << std::endl;
+			for (const auto& item : location.l_methods) {
+				std::cout << "        " << item << std::endl;
+			}
 
-            std::cout << "      CGI Path:" << std::endl;
-            for (const auto& item : location.l_cgi_path) {
-                std::cout << "        " << item << std::endl;
-            }
+			std::cout << "      CGI Path:" << std::endl;
+			for (const auto& item : location.l_cgi_path) {
+				std::cout << "        " << item << std::endl;
+			}
 
-            std::cout << "      CGI Extension:" << std::endl;
-            for (const auto& item : location.l_cgi_extension) {
-                std::cout << "        " << item << std::endl;
-            }
+			std::cout << "      CGI Extension:" << std::endl;
+			for (const auto& item : location.l_cgi_extension) {
+				std::cout << "        " << item << std::endl;
+			}
 
-            std::cout << "      Upload Store:" << std::endl;
-            for (const auto& item : location.l_upload_store) {
-                std::cout << "        " << item << std::endl;
-            }
+			std::cout << "      Upload Store:" << std::endl;
+			for (const auto& item : location.l_upload_store) {
+				std::cout << "        " << item << std::endl;
+			}
 
-            std::cout << "      Client Max Body Size:" << std::endl;
-            for (const auto& item : location.l_client_max_body_size) {
-                std::cout << "        " << item << std::endl;
-            }
-        }
-    }
+			std::cout << "      Client Max Body Size:" << std::endl;
+			for (const auto& item : location.l_client_max_body_size) {
+				std::cout << "        " << item << std::endl;
+			}
+		}
+	}
 }
 
 
 int main()
 {
     std::vector<Server> servers;
-    std::string path = "../../config/error.conf";
+    std::string path = "../../config/file1.conf";
 	std::cout << "in main ";
     // Chiama una funzione per aggiungere server al vettore
     ParseFileLineByLine(path, servers);

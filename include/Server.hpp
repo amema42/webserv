@@ -27,11 +27,7 @@ class Server
         Server &operator=(const Server &inst); // = op
         bool setNumberToZero(int number);
 
-        // Setter e getter per i vettori
-        void addToListen(const std::string& value);
-        std::vector<std::string> getListen() const;
-        size_t getListenSize() const;
-
+        // Setter e getter per i vettor
         void addToServerName(const std::string& value);
         std::vector<std::string> getServerName() const;
         size_t getServerNameSize() const;
@@ -44,9 +40,6 @@ class Server
         std::vector<std::vector<std::string> > getErrorPage() const;
         size_t getErrorPageSize() const;
 
-        void addToClientMaxBodySize(const std::string& value);
-        std::vector<std::string> getClientMaxBodySize() const;
-        size_t getClientMaxBodySizeSize() const;
 
         void addToIndex(const std::string& value);
         std::vector<std::string> getIndex() const;

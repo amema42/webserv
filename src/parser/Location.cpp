@@ -98,11 +98,3 @@ void Location::addToLUploadStore(const std::string& value) {
 std::vector<std::string> Location::getLUploadStore() const {
     return l_upload_store;
 }
-
-void Location::addToLMaxBodySize(const std::string& value) {
-    l_client_max_body_size.push_back(value);
-}
-
-std::vector<std::string> Location::getLMaxBodySize() const {
-    return l_client_max_body_size;
-}
