@@ -6,7 +6,7 @@
 /*   By: jacopo <jacopo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/19 15:06:40 by jacopo            #+#    #+#             */
-/*   Updated: 2025/03/04 15:37:36 by jacopo           ###   ########.fr       */
+/*   Updated: 2025/03/18 12:02:39 by jacopo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,7 @@
 #include <algorithm>
 #include <vector>
 #include <string>
+#include <map>
 
 
 #include "CGIHandler.hpp"
@@ -37,8 +38,8 @@
 #include "./Config.hpp"
 #include "HTTPRequest.hpp"
 #include "HTTPResponse.hpp"
-#include "HTTPServer.hpp"
-#include "Parser.hpp" //parser di ani
+#include "./HTTPServer.hpp"
+//#include "Parser.hpp" //parser di ani
 #include "Tokenizer.hpp"
 
 #define ERROR 0

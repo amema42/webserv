@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include "webServ.hpp"
 
 class Location;
 
@@ -16,7 +17,7 @@ class Server
         std::vector<int> listen;
         std::vector<std::string> server_name;
         std::vector<std::string> root;
-        std::vector<std::vector<std::string> > error_page;
+        std::map<std::string, std::string> error_page;
         std::vector<size_t> client_max_body_size;
         std::vector<std::string> index;
         std::vector<Location> location;

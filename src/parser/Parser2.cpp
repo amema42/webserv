@@ -1,4 +1,4 @@
-#include "../../include/webServ.hpp"
+#include "webServ.hpp"
 #include <fstream>
 #include <sstream>
 #include <iostream>
@@ -549,8 +549,8 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
                 		file.close();
                 		return 0;
     		}
-			std::cout << "look for =" << look_for << "sono uscito dallo switch\n";
-			std::cout << Word << " è la parola con cui sono uscito\n";
+			// std::cout << "look for =" << look_for << "sono uscito dallo switch\n";
+			// std::cout << Word << " è la parola con cui sono uscito\n";
         }
     }
 	//funzione che controlli non ci siano ripetizioni di server name

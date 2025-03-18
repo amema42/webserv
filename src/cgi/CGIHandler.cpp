@@ -2,16 +2,24 @@
 
 CGIHandler::CGIHandler(){}
 
-CGIHandler::CGIHandler(std::string path): _cgipath(path) {
+CGIHandler::CGIHandler(std::string rawpath): _rawPath(rawpath) {
     std::cout << "--- constructo debug infos ---" << std::endl;
-    std::cout << _cgipath << std::endl;
+    std::size_t pos = _rawPath.find("?");
+    _cgipath = _rawPath.substr(1, pos - 1);
+    _query = _rawPath.substr(pos + 1);
+    std::cout << "the cgi path" << _cgipath << std::endl;
+    std::cout << "query string" << _query << std::endl;
     std::cout << std::endl;
 }
 
 CGIHandler::~CGIHandler(){}
 
-std::string CGIHandler::executeScript(const std::string& method, const std::string& query, const std::string& body) {
+std::string CGIHandler::executeScript(const std::string& method, const std::string& body) {
     int stdoutPipe[2], stdinPipe[2];
+    std::ifstream file (_cgipath);
+    if (!file.is_open())
+        throw CGIHandler::CGIerror("unable to find a cgi script");
+
     if (pipe(stdoutPipe) == -1 || pipe(stdinPipe) == -1)
         throw CGIHandler::CGIerror("pipe creation error");
 
@@ -31,7 +39,7 @@ std::string CGIHandler::executeScript(const std::string& method, const std::stri
 
         // Imposta variabili d'ambiente
         setenv("REQUEST_METHOD", method.c_str(), 1);
-        setenv("QUERY_STRING", query.c_str(), 1);
+        setenv("QUERY_STRING", _query.c_str(), 1);
         setenv("CONTENT_LENGTH", std::to_string(body.size()).c_str(), 1);
 
         execl(this->_cgipath.c_str(), this->_cgipath.c_str(), nullptr);

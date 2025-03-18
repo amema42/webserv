@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include "Server.hpp"
 
 // Config per una "location" (blocco simile; -> e.s. location in NGINX)
 struct LocationConfig {
@@ -26,7 +27,7 @@ struct ServerConfig {
 
 // Configurazione globale: può essere composta da più server (server virtuali)
 struct Config {
-    std::vector<ServerConfig> servers;
+    std::vector<Server> *servers;
 };
 //ok
 #endif

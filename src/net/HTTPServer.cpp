@@ -1,3 +1,4 @@
+#include "webServ.hpp"
 #include "HTTPServer.hpp"
 #include "HTTPRequest.hpp"
 #include "HTTPResponse.hpp"
@@ -39,8 +40,8 @@ HTTPServer::~HTTPServer() {
 void HTTPServer::initSockets() {
     // Per ogni **ServerConfig**, crea un socket e configuralo in modalità "non bloccante".
     // Se nel file di configurazione hai più server, vanno gestite eventuali duplicazioni di host:port (like subject specifies: il primo per **host:port** è quello di default).
-    for (size_t i = 0; i < _config.servers.size(); ++i) {
-        const ServerConfig &server = _config.servers[i];
+    for (size_t i = 0; i < (*_config.servers).size(); ++i) {
+        const Server &server = (*_config.servers)[i];
 
         int sockfd = socket(AF_INET, SOCK_STREAM, 0);
         if (sockfd < 0)
@@ -56,7 +57,7 @@ void HTTPServer::initSockets() {
         // Configura l'indirizzo
         sockaddr_in addr;
         addr.sin_family = AF_INET;
-        addr.sin_port = htons(server.listen);
+        addr.sin_port = htons(server.listen[0]);
         addr.sin_addr.s_addr = INADDR_ANY;  // Per semplicità possiamo gestire host specifici in base a server.host 
                                             //(if server.host == "a specific host") do something specific {else} if(server.host == "a specific host") do something else
         memset(addr.sin_zero, 0, sizeof(addr.sin_zero));
@@ -74,21 +75,52 @@ void HTTPServer::initSockets() {
         }
 
         _listenSockets.push_back(sockfd);
-        std::cout << "Server in ascolto su porta " << server.listen << std::endl;
+        std::cout << "Server in ascolto su porta " << server.listen[0] << std::endl;
     }
 }
 
 void HTTPServer::handleClientRequest(ClientConnection *clientConn, const std::string &rawRequest) {
-    // 1. Creo un "oggetto" per il parsing della richiesta
+    // 1. Creo un "oggetto" per il parsing della richiesta ed uno per la risposta!!!
     HTTPRequest request;
-    request.parseRequest(rawRequest);
-
-    // 2. Costruisco una risposta di base
     HTTPResponse response;
-    response.setStatus(200, "OK");
+    
+    request.parseRequest(rawRequest);
+    // 2. Costruiamo la rispostaaaa
+    if(request.method != "GET" && request.method != "POST" && request.method != "DELETE")
+        response.setStatus(400, "bad request");
+    else
+        response.setStatus(200, "OK");
+    
+    //gestione dei varii casi
+    if (request.uri.find("cgi-bin")){
+        std::cout << "handle cgi request" << std::endl;
+        CGIHandler cgi(request.uri);
+        try{
+            response.body = cgi.executeScript(request.method, request.body);
+            std::cout << response.body << std::endl;
+        }
+        catch (std::exception& e){
+            std::cout << e.what() <<std::endl;
+        }
+    }
+    
+    else if (request.method == "GET"){
+        std::cout << "handle get request" << std::endl;
+        //handleget();
+        response.body = "<html><body><h1>Ciao, Mondo! dal get</h1></body></html>";
+    }
+    else if (request.method == "POST"){
+        std::cout<< "handle POST request" << std::endl;
+        //handlepost();
+        response.body = "<html><body><h1>Ciao, Mondo dal post!</h1></body></html>";
+    }
+    else {
+        std::cout << "handle DELETE request" << std::endl;
+        response.body = "<html><body><h1>Ciao, Mondo!</h1></body></html>";
+    }
     response.setHeader("Content-Type", "text/html");
     // response example: pagina HTML statica
-    response.body = "<html><body><h1>Ciao, Mondo!</h1></body></html>";
+    // bisogna fornire la pagina richiesta 
     
     // set the **Content-Length** (C++98 usa std::ostringstream per la conversione)
     std::ostringstream oss;

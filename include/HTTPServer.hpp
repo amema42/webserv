@@ -1,6 +1,7 @@
 #ifndef HTTPSERVER_HPP
 #define HTTPSERVER_HPP
 
+#include "webServ.hpp"
 #include "Config.hpp"
 #include "ClientConnection.hpp"
 #include <vector>
