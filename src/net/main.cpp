@@ -15,7 +15,7 @@ std::string readFile(const std::string &filename) {
 }
 
 int main(int argc, char **argv) {
-    std::string configPath = "../config/file1.conf"; // percorso di default
+    std::string configPath = "../config/file1.conf"; // default path
     if (argc > 1) {
         configPath = argv[1];
     }
