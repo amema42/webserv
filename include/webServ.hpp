@@ -6,7 +6,7 @@
 /*   By: jacopo <jacopo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/19 15:06:40 by jacopo            #+#    #+#             */
-/*   Updated: 2025/03/18 12:02:39 by jacopo           ###   ########.fr       */
+/*   Updated: 2025/03/19 13:38:10 by jacopo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,6 +67,16 @@ bool endsWithSemicolon(const std::string& word);
 bool insertArgInField(std::string& Word, int look_for, std::vector<std::string>& args, int n_line);
 bool insertInMethods(std::istringstream& iss, std::string& Word, int look_for, Location& location, int n_line);
 int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& servers);
+std::string readFile(const std::string &filename);
+
+template <typename T>
+std::string mcamilli(const std::vector<T>& value){
+	std::ostringstream result;
+	for (std::size_t i = 0; i < value.size(); i++){
+		result << value[i];
+	}
+	return result.str();
+}
 
 
 #endif // WEBSERV_hpp

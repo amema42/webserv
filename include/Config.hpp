@@ -5,6 +5,7 @@
 #include <vector>
 #include "Server.hpp"
 
+//queste due strutture non sono più utilizzate
 // Config per una "location" (blocco simile; -> e.s. location in NGINX)
 struct LocationConfig {
     std::string path;                      // Es. "/" o "/api"

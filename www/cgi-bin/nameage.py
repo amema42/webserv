@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import cgi
 import cgitb  # Per mostrare gli errori nel browser (utile per il debug)
 

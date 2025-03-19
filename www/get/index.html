@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cristian De Sica</title>
+    <style>
+        body {
+            background-color: black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            flex-direction: column; /* Cambiato per disporre immagine e bottone in colonna */
+        }
+
+        .foto-rotonda {
+            border-radius: 50%;
+            width: 300px;
+            height: 300px;
+            object-fit: cover;
+            border: 5px solid white;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+            margin-bottom: 20px; /* Aggiunto margine per separare immagine e bottone */
+        }
+
+        .bottone-indietro {
+            padding: 10px 20px;
+            background-color: white;
+            color: black;
+            border: 2px solid white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease, color 0.3s ease; /* Aggiunta transizione */
+        }
+
+        .bottone-indietro:hover {
+            background-color: black;
+            color: white;
+        }
+
+    </style>
+</head>
+<body>
+    <img src="https://via.placeholder.com/300" alt="Cristian De Sica" class="foto-rotonda">
+    <button class="bottone-indietro" onclick="window.history.back()">Torna Indietro</button>
+</body>
+</html>

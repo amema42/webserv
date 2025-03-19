@@ -6,7 +6,7 @@ CXXFLAGS = -Wall -Wextra -Werror -std=c++11
 
 INCLUDES = -I./include
 
-SRCS = $(filter-out src/net/Parser.cpp, $(wildcard *.cpp src/parser/*.cpp src/net/*.cpp src/cgi/*.cpp))
+SRCS = $(filter-out src/net/Parser.cpp, $(wildcard *.cpp  src/*.cpp src/parser/*.cpp src/net/*.cpp src/cgi/*.cpp))
 
 OBJS = $(SRCS:.cpp=.o)
 
