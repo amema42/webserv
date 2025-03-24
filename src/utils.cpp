@@ -9,3 +9,5 @@ std::string readFile(const std::string &filename) {
     buffer << file.rdbuf();
     return buffer.str();
 }
+
+HTTPServer* get
