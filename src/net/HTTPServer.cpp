@@ -81,6 +81,7 @@ void HTTPServer::initSockets() {
 
 void HTTPServer::handleGetRequest(const HTTPRequest& request, HTTPResponse& response) {
     std::stringstream filepath;
+    getServerByHost(request, _config);
     if(request.uri.size() == 1)
         filepath << (*_config.servers)[0].root[0] << request.uri  << (*_config.servers)[0].index[0];
     else
