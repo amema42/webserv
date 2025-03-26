@@ -113,3 +113,11 @@ std::vector<Location>& Server::getLocation() {
 const std::vector<Location>& Server::getLocation() const {
     return location;
 }
+
+std::string Server::getErrorPage(std::string value){
+
+    std::map<std::string, std::string>::iterator it =  error_page.find(value);
+    if(it != error_page.end())
+        return (it->second);
+    throw std::runtime_error("no errr page for code: " + value);
+}

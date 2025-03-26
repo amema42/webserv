@@ -6,7 +6,7 @@
 /*   By: jacopo <jacopo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/19 15:06:40 by jacopo            #+#    #+#             */
-/*   Updated: 2025/03/25 14:56:17 by jacopo           ###   ########.fr       */
+/*   Updated: 2025/03/26 17:11:41 by jacopo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,7 +78,8 @@ std::string mcamilli(const std::vector<T>& value){
 	return result.str();
 }
 
-void getServerByHost(const HTTPRequest& request, const Config & config);
+Server& getServerByHost(const HTTPRequest& request, const Config & config);
+void printMap(std::map<std::string, std::string>& map, std::string first, std::string second);
 
 
 #endif // WEBSERV_hpp

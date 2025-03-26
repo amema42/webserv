@@ -38,7 +38,6 @@ class Server
         size_t getRootSize() const;
 
         void addToErrorPage(const std::vector<std::string>& value);
-        std::vector<std::vector<std::string> > getErrorPage() const;
         size_t getErrorPageSize() const;
 
 
@@ -50,6 +49,7 @@ class Server
         void addLocation(const Location& loc);
         std::vector<Location>& getLocation();
         const std::vector<Location>& getLocation() const;
+        std::string getErrorPage(std::string value);
 };
 
 #endif

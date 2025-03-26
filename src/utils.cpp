@@ -20,16 +20,30 @@ std::string getHeaderValue(const std::string toFind, const HTTPRequest& request)
     }
 }
 
-void getServerByHost(const HTTPRequest& request, const Config & config){
+Server& getServerByHost(const HTTPRequest& request, const Config & config){
     std::string Host = getHeaderValue("Host", request);
     std::size_t pos = Host.find(":");
     int port = atoi((Host.substr(pos + 1)).c_str());
     std::cout << "valore trovato dalla funzione getServerByHost: "<< port << std::endl;
     size_t i = 0;
-    while(i < (*config.servers).size() && (*config.servers)[i].listen[0] != port){
-        if((*config.servers)[i].listen[0] == port)
-            std::cout << " ho trovato il server" << (*config.servers)[i].server_name[0] << std::endl;
+    while(i < (*config.servers).size()){
+         if((*config.servers)[i].listen[0] == port){
+            return ((*config.servers)[i]);
+             // std::cout << " ho trovato il server" << (*config.servers)[i].server_name[0] << std::endl;
+         }
         i++;
     }
-    
+    throw std::exception();
 }
+
+
+void printMap(std::map<std::string, std::string>& map, std::string first, std::string second){
+
+    std::map<std::string, std::string>::iterator it = map.begin();
+    while(it != map.end()){
+        std::cout << first <<it->first << second << it->second << std::endl;
+        it++;
+    }
+}
+
+

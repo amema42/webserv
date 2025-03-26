@@ -9,12 +9,12 @@ int main(int ac, char **av){
 		return -1;
 	}
 	std::vector<Server> servers;
-	//parsa il config file
+	//config file pars
 	if(!ParseFileLineByLine(confPath, servers))
 		return -1;
 	Config config;
 	config.servers = &servers;
-	//creare una funzione di stampa
+	//creare funzione di stampa;
 	for (size_t i = 0; i < config.servers->size(); i++) {
 		std::cout << "Server " << i+1 << ":\n";
 		std::cout << "  |-Listen: " << mcamilli((*config.servers)[i].listen) << "\n";
@@ -23,6 +23,8 @@ int main(int ac, char **av){
 		std::cout << "  |-Server root: " << mcamilli((*config.servers)[i].root) << std::endl;
 		std::cout << "  |-Server index: " << mcamilli((*config.servers)[i].index) << std::endl;
 		std::cout << "  |-Numero di location: "<< (*config.servers)[i].location.size() << std::endl;
+		std::cout << "  |-Error pages:" << std::endl;
+		printMap((*config.servers)[i].error_page, "   |-error: ", "page: ");
 		for (size_t j = 0; j < (*config.servers)[i].location.size(); j++){
 			std::cout << "\tlocation n:  "<< j << std::endl;
 			std::cout << "\t  |-path:  " << mcamilli((*config.servers)[i].location[j].path) << std::endl;

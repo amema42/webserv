@@ -81,14 +81,14 @@ void HTTPServer::initSockets() {
 
 void HTTPServer::handleGetRequest(const HTTPRequest& request, HTTPResponse& response) {
     std::stringstream filepath;
-    getServerByHost(request, _config);
+    Server& server =  getServerByHost(request, _config);
     if(request.uri.size() == 1)
-        filepath << (*_config.servers)[0].root[0] << request.uri  << (*_config.servers)[0].index[0];
+        filepath << server.root[0] << request.uri  << server.index[0];
     else
-        filepath << (*_config.servers)[0].root[0] << request.uri << "/" << (*_config.servers)[0].index[0];
+        filepath << server.root[0] << request.uri << "/" << server.index[0];//sistemare per sapere la location
     std::cout << "\t\tla path per il file da trovare" << filepath.str() << std::endl;
     try {
-        // std::string contentType = getMimeType(filePath); // Implementa mappa MIME
+        // std::string contentType = getMimeType(filePath); // Implementa mappa MIME vogliamo/dobbiamo farlo??
         std::string content = readFile(filepath.str());
         response.setStatus(200, "OK");
         response.body = content;
@@ -96,10 +96,18 @@ void HTTPServer::handleGetRequest(const HTTPRequest& request, HTTPResponse& resp
     catch (std::exception& e){
         std::cout << e.what() << std::endl;
         response.setStatus(404, "Not Found");
+        try{
+            std::string errorPath = server.getErrorPage("404");
+            std::string errorContent = readFile(errorPath);
+            response.body = errorContent;
+        }
+        catch(std::exception& e){
+            std::cout << e.what() <<std::endl;
+            response.body = "<html><body><h1>File Not Found</h1><p>default error page a specific one are not provided in config file</p></body></html>";
+        }
         return;
     }
     return;
-    
 }
 
 void HTTPServer::handleClientRequest(ClientConnection *clientConn, const std::string &rawRequest) {
@@ -115,6 +123,7 @@ void HTTPServer::handleClientRequest(ClientConnection *clientConn, const std::st
         response.setStatus(200, "OK");
     
     //gestione dei varii casi
+    //da gestire come nel get per i path della cgi
     if (request.uri.find("cgi-bin") != std::string::npos){
         std::cout << "handle cgi request" << std::endl;
         CGIHandler cgi(request.uri);

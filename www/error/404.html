@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ATTENZIONE! ERRORE CRITICO 404!!!</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background-color: #ff00ff; /* Shocking pink */
+            color: #00ff00; /* Bright green */
+            text-align: center;
+            margin: 50px;
+            animation: wiggle 0.5s infinite alternate;
+        }
+
+        @keyframes wiggle {
+            from { transform: rotate(-2deg); }
+            to { transform: rotate(2deg); }
+        }
+
+        h1 {
+            font-size: 5em;
+            text-decoration: underline wavy red;
+            text-shadow: 3px 3px #0000ff; /* Bright blue shadow */
+            margin-bottom: 0;
+        }
+
+        p {
+            font-size: 2em;
+            border: 5px dotted yellow;
+            padding: 20px;
+            background-color: #ffff00; /* Bright yellow */
+            color: #800080; /* Purple */
+            display: inline-block;
+        }
+
+        button {
+            font-family: 'Arial Black', sans-serif;
+            font-size: 1.5em;
+            background-color: #000000; /* Black */
+            color: #ffffff; /* White */
+            border: 3px dashed cyan;
+            padding: 15px 30px;
+            cursor: pointer;
+            margin-top: 30px;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.2; }
+        }
+
+        #movingText {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 1.2em;
+            color: blue;
+            background-color: orange;
+            padding: 5px;
+            border: 2px solid brown;
+        }
+    </style>
+</head>
+<body>
+    <div id="movingText">QUESTA PAGINA NON ESISTE!</div>
+    <h1>4<span style="color: red;">0</span>4</h1>
+    <p>OH NO! Sembra che ti sia perso nel cyberspazio!</p>
+    <button onclick="wigglePage()">TORNA ALLA HOME (forse?)</button>
+
+    <script>
+        function wigglePage() {
+            const body = document.body;
+            let wiggleInterval = setInterval(() => {
+                body.style.transform = `rotate(${Math.random() * 10 - 5}deg)`;
+            }, 100);
+
+            setTimeout(() => {
+                clearInterval(wiggleInterval);
+                body.style.transform = 'rotate(0deg)';
+                alert("Sorpresa! Non c'è una home. Riprova?");
+            }, 3000);
+        }
+
+        const movingText = document.getElementById('movingText');
+        let x = 10;
+        let y = 10;
+        let dx = 2;
+        let dy = 1;
+
+        function moveText() {
+            x += dx;
+            y += dy;
+            movingText.style.left = x + 'px';
+            movingText.style.top = y + 'px';
+
+            if (x + movingText.offsetWidth > window.innerWidth || x < 0) {
+                dx = -dx;
+                movingText.style.color = getRandomColor();
+                movingText.style.backgroundColor = getRandomColor();
+            }
+            if (y + movingText.offsetHeight > window.innerHeight || y < 0) {
+                dy = -dy;
+                movingText.style.color = getRandomColor();
+                movingText.style.backgroundColor = getRandomColor();
+            }
+            requestAnimationFrame(moveText);
+        }
+
+        function getRandomColor() {
+            const letters = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+
+        moveText();
+    </script>
+</body>
+</html>
