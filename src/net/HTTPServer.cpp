@@ -1,3 +1,4 @@
+#include "webServ.hpp"
 #include "HTTPServer.hpp"
 #include "HTTPRequest.hpp"
 #include "HTTPResponse.hpp"
@@ -39,12 +40,12 @@ HTTPServer::~HTTPServer() {
 void HTTPServer::initSockets() {
     // Per ogni **ServerConfig**, crea un socket e configuralo in modalità "non bloccante".
     // Se nel file di configurazione hai più server, vanno gestite eventuali duplicazioni di host:port (like subject specifies: il primo per **host:port** è quello di default).
-    for (size_t i = 0; i < _config.servers.size(); ++i) {
-        const ServerConfig &server = _config.servers[i];
+    for (size_t i = 0; i < (*_config.servers).size(); ++i) {
+        const Server &server = (*_config.servers)[i];
 
         int sockfd = socket(AF_INET, SOCK_STREAM, 0);
         if (sockfd < 0)
-            throw std::runtime_error("Errore nella creazione del socket.");
+            throw std::runtime_error("Error in socket creation.");
 
         // Configura il socket in modalità non bloccante e imposta FD_CLOEXEC
         int flags = fcntl(sockfd, F_GETFL, 0);
@@ -56,7 +57,7 @@ void HTTPServer::initSockets() {
         // Configura l'indirizzo
         sockaddr_in addr;
         addr.sin_family = AF_INET;
-        addr.sin_port = htons(server.listen);
+        addr.sin_port = htons(server.listen[0]);
         addr.sin_addr.s_addr = INADDR_ANY;  // Per semplicità possiamo gestire host specifici in base a server.host 
                                             //(if server.host == "a specific host") do something specific {else} if(server.host == "a specific host") do something else
         memset(addr.sin_zero, 0, sizeof(addr.sin_zero));
@@ -64,31 +65,84 @@ void HTTPServer::initSockets() {
         // Lega il socket
         if (bind(sockfd, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
             close(sockfd);
-            throw std::runtime_error("Errore nel binding del socket.");
+            throw std::runtime_error("Error binding socket.");
         }
 
         // Inizia ad ascoltare
         if (listen(sockfd, 128) < 0) {
             close(sockfd);
-            throw std::runtime_error("Errore in listen().");
+            throw std::runtime_error("Error in listen().");
         }
 
         _listenSockets.push_back(sockfd);
-        std::cout << "Server in ascolto su porta " << server.listen << std::endl;
+        std::cout << "Server are listening on port " << server.listen[0] << std::endl;
     }
 }
 
-void HTTPServer::handleClientRequest(ClientConnection *clientConn, const std::string &rawRequest) {
-    // 1. Creo un "oggetto" per il parsing della richiesta
-    HTTPRequest request;
-    request.parseRequest(rawRequest);
+void HTTPServer::handleGetRequest(const HTTPRequest& request, HTTPResponse& response) {
+    std::stringstream filepath;
+    getServerByHost(request, _config);
+    if(request.uri.size() == 1)
+        filepath << (*_config.servers)[0].root[0] << request.uri  << (*_config.servers)[0].index[0];
+    else
+        filepath << (*_config.servers)[0].root[0] << request.uri << "/" << (*_config.servers)[0].index[0];
+    std::cout << "\t\tla path per il file da trovare" << filepath.str() << std::endl;
+    try {
+        // std::string contentType = getMimeType(filePath); // Implementa mappa MIME
+        std::string content = readFile(filepath.str());
+        response.setStatus(200, "OK");
+        response.body = content;
+    }
+    catch (std::exception& e){
+        std::cout << e.what() << std::endl;
+        response.setStatus(404, "Not Found");
+        return;
+    }
+    return;
+    
+}
 
-    // 2. Costruisco una risposta di base
+void HTTPServer::handleClientRequest(ClientConnection *clientConn, const std::string &rawRequest) {
+    // 1. Creo un "oggetto" per il parsing della richiesta ed uno per la risposta!!!
+    HTTPRequest request;
     HTTPResponse response;
-    response.setStatus(200, "OK");
+    
+    request.parseRequest(rawRequest);
+    // 2. Costruiamo la rispostaaaa
+    if(request.method != "GET" && request.method != "POST" && request.method != "DELETE")
+        response.setStatus(400, "bad request");
+    else
+        response.setStatus(200, "OK");
+    
+    //gestione dei varii casi
+    if (request.uri.find("cgi-bin") != std::string::npos){
+        std::cout << "handle cgi request" << std::endl;
+        CGIHandler cgi(request.uri);
+        try{
+            response.body = cgi.executeScript(request.method, request.body);
+            std::cout << response.body << std::endl;
+        }
+        catch (std::exception& e){
+            std::cout << e.what() <<std::endl;
+        }
+    }
+    
+    else if (request.method == "GET"){
+        std::cout << "handle get request" << std::endl;
+        handleGetRequest(request, response);
+    }
+    else if (request.method == "POST"){
+        std::cout<< "handle POST request" << std::endl;
+        //handlepost();
+        response.body = "<html><body><h1>Ciao, Mondo dal post!</h1></body></html>";
+    }
+    else {
+        std::cout << "handle DELETE request" << std::endl;
+        response.body = "<html><body><h1>Ciao, Mondo!</h1></body></html>";
+    }
     response.setHeader("Content-Type", "text/html");
     // response example: pagina HTML statica
-    response.body = "<html><body><h1>Ciao, Mondo!</h1></body></html>";
+    // bisogna fornire la pagina richiesta 
     
     // set the **Content-Length** (C++98 usa std::ostringstream per la conversione)
     std::ostringstream oss;
@@ -148,14 +202,14 @@ void HTTPServer::eventLoop() {
         pollfds.push_back(pfd);
     }
     
-    std::cout << "Inizio del loop degli eventi..." << std::endl;
+    std::cout << "start event loop..." << std::endl;
 
     while (true)
     {
         int ret = poll(&pollfds[0], pollfds.size(), -1);
         if (ret < 0)
         {
-            std::cerr << "Errore in poll(): " << strerror(errno) << std::endl;
+            std::cerr << "Error in poll(): " << strerror(errno) << std::endl;
             continue;
         }
         // Gestire gli eventi: se uno dei socket di ascolto è pronto, accetta nuove connessioni,
@@ -175,7 +229,7 @@ void HTTPServer::eventLoop() {
                     int client_fd = accept(pollfds[i].fd, (struct sockaddr*)&client_addr, &client_len);
                     if (client_fd < 0)
                     {
-                        std::cerr << "Errore in accept(): " << strerror(errno) << std::endl;
+                        std::cerr << "Error in accept(): " << strerror(errno) << std::endl;
                         continue;
                     }
 
@@ -186,7 +240,7 @@ void HTTPServer::eventLoop() {
                         fcntl(client_fd, F_SETFL, flags | O_NONBLOCK);
                     }
                     
-                    std::cout << "Nuova connessione accettata: fd " << client_fd << std::endl;
+                    std::cout << "new connection acceted: fd " << client_fd << std::endl;
 
                     ClientConnection *newConn = new ClientConnection(client_fd); // Creo un nuovo oggetto ClientConnection per il "nuovo" fd
                     _clientConnections.push_back(newConn);
@@ -217,9 +271,9 @@ void HTTPServer::eventLoop() {
                     if (n <= 0)
                     {
                         if (n < 0)
-                            std::cerr << "Errore in read(): " << strerror(errno) << std::endl;
+                            std::cerr << "Error in read(): " << strerror(errno) << std::endl;
                         else
-                            std::cout << "Chiusura della connessione: fd " << pollfds[i].fd << std::endl;
+                            std::cout << "closing connection: fd " << pollfds[i].fd << std::endl;
                         close(pollfds[i].fd);
                         // Rimuovi il pollfd dalla lista + e l'oggetto ClientConnection
                         pollfds.erase(pollfds.begin() + i);
@@ -234,11 +288,11 @@ void HTTPServer::eventLoop() {
                         buffer[n] = '\0';
                         // Add i dati letti al buffer persistente della connection
                         conn->getBuffer().append(buffer);
-                        std::cout << "Buffer per fd " << conn->getFd() << ": " << conn->getBuffer() << std::endl;
+                        std::cout << "Buffer for fd " << conn->getFd() << ": " << conn->getBuffer() << std::endl;
                         if (conn->hasCompleteRequest()) {
                             // Qui, per semplicità, consideriamo l'intero buffer come una richiesta
                             std::string rawRequest = conn->getBuffer();
-                            std::cout << "Richiesta completa dal fd " << conn->getFd() << ": " << rawRequest << std::endl;
+                            std::cout << "complete request from fd " << conn->getFd() << ": " << rawRequest << std::endl;
                         
                         handleClientRequest(conn, rawRequest); // Processa la richiesta
                         /*Se il client non usa keep-alive, handleClientRequest ha chiuso il socket.

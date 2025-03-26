@@ -1,6 +1,7 @@
 #ifndef HTTPSERVER_HPP
 #define HTTPSERVER_HPP
 
+#include "webServ.hpp"
 #include "Config.hpp"
 #include "ClientConnection.hpp"
 #include <vector>
@@ -29,7 +30,7 @@ private:
     //void handleClientRequest(int client_fd, const std::string &rawRequest); -> modifico la funzione in modo da ricevere un puntatore a ClientConnection invece del solo fd.
     // logica rimane simile, ma va verificata la presenza dell'header Connection: keep-alive.
     void handleClientRequest(ClientConnection *clientConn, const std::string &rawRequest);
-
+    void handleGetRequest(const HTTPRequest& request, HTTPResponse& response);
 };
 
 #endif

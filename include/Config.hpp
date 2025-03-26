@@ -3,7 +3,9 @@
 
 #include <string>
 #include <vector>
+#include "Server.hpp"
 
+//queste due strutture non sono più utilizzate
 // Config per una "location" (blocco simile; -> e.s. location in NGINX)
 struct LocationConfig {
     std::string path;                      // Es. "/" o "/api"
@@ -26,7 +28,7 @@ struct ServerConfig {
 
 // Configurazione globale: può essere composta da più server (server virtuali)
 struct Config {
-    std::vector<ServerConfig> servers;
+    std::vector<Server> *servers;
 };
 //ok
 #endif

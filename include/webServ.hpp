@@ -6,7 +6,7 @@
 /*   By: jacopo <jacopo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/19 15:06:40 by jacopo            #+#    #+#             */
-/*   Updated: 2025/03/04 15:37:36 by jacopo           ###   ########.fr       */
+/*   Updated: 2025/03/25 14:56:17 by jacopo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,7 @@
 #include <algorithm>
 #include <vector>
 #include <string>
+#include <map>
 
 
 #include "CGIHandler.hpp"
@@ -37,8 +38,8 @@
 #include "./Config.hpp"
 #include "HTTPRequest.hpp"
 #include "HTTPResponse.hpp"
-#include "HTTPServer.hpp"
-#include "Parser.hpp" //parser di ani
+#include "./HTTPServer.hpp"
+//#include "Parser.hpp" //parser di ani
 #include "Tokenizer.hpp"
 
 #define ERROR 0
@@ -66,6 +67,18 @@ bool endsWithSemicolon(const std::string& word);
 bool insertArgInField(std::string& Word, int look_for, std::vector<std::string>& args, int n_line);
 bool insertInMethods(std::istringstream& iss, std::string& Word, int look_for, Location& location, int n_line);
 int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& servers);
+std::string readFile(const std::string &filename);
+
+template <typename T>
+std::string mcamilli(const std::vector<T>& value){
+	std::ostringstream result;
+	for (std::size_t i = 0; i < value.size(); i++){
+		result << value[i];
+	}
+	return result.str();
+}
+
+void getServerByHost(const HTTPRequest& request, const Config & config);
 
 
 #endif // WEBSERV_hpp

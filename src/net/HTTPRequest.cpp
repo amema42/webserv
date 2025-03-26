@@ -1,6 +1,7 @@
 #include "HTTPRequest.hpp"
 #include <sstream>
 #include <algorithm>
+#include "webServ.hpp"
 
 HTTPRequest::HTTPRequest() {
 }
@@ -42,6 +43,7 @@ void HTTPRequest::parseRequest(const std::string &rawRequest) {
 
     std::istringstream requestLineStream(requestLine);
     requestLineStream >> method >> uri >> httpVersion;
+    std::cout << "\t\trequest uri: "<< uri << std::endl;
 
     // --- Parsing degli Header ---
     std::string line;

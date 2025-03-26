@@ -6,13 +6,15 @@
 class CGIHandler
 {
     private:
+    std::string _rawPath;
     std::string _cgipath;
+    std::string _query; 
 
     public:
     CGIHandler();
-    CGIHandler(std::string path);
+    CGIHandler(std::string rawpath);
     ~CGIHandler();
-    std::string executeScript(const std::string& method, const std::string& query, const std::string& body);
+    std::string executeScript(const std::string& method, const std::string& body);
     
 
     
