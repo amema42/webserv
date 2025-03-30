@@ -25,24 +25,7 @@ class Location
         Location &operator=(const Location &inst); // = op
         bool setNumberToZero(int number);
 
-        // Setter e getter per i vettori
-        void addToLRoot(const std::string& value);
-        std::vector<std::string> getLRoot() const;
-
-        void addToLIndex(const std::string& value);
-        std::vector<std::string> getLIndex() const;
-
         void addToLMethods(const std::string& value);
-        std::vector<std::string> getLMethods() const;
-
-        void addToLCgiPath(const std::string& value);
-        std::vector<std::string> getLCgiPath() const;
-
-        void addToLCgiExtension(const std::string& value);
-        std::vector<std::string> getLCgiExtension() const;
-
-        void addToLUploadStore(const std::string& value);
-        std::vector<std::string> getLUploadStore() const;
 
 };
 

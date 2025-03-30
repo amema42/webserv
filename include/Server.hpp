@@ -27,29 +27,7 @@ class Server
         Server(const Server &inst); //copy const
         Server &operator=(const Server &inst); // = op
         bool setNumberToZero(int number);
-
-        // Setter e getter per i vettor
-        void addToServerName(const std::string& value);
-        std::vector<std::string> getServerName() const;
-        size_t getServerNameSize() const;
-
-        void addToRoot(const std::string& value);
-        std::vector<std::string> getRoot() const;
-        size_t getRootSize() const;
-
-        void addToErrorPage(const std::vector<std::string>& value);
-        std::vector<std::vector<std::string> > getErrorPage() const;
-        size_t getErrorPageSize() const;
-
-
-        void addToIndex(const std::string& value);
-        std::vector<std::string> getIndex() const;
-        size_t getIndexSize() const;
-
-        // Setter e getter per il vettore location
-        void addLocation(const Location& loc);
-        std::vector<Location>& getLocation();
-        const std::vector<Location>& getLocation() const;
+        
 };
 
 #endif
