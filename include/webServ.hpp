@@ -6,7 +6,7 @@
 /*   By: jacopo <jacopo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/19 15:06:40 by jacopo            #+#    #+#             */
-/*   Updated: 2025/03/26 17:11:41 by jacopo           ###   ########.fr       */
+/*   Updated: 2025/03/31 22:52:17 by jacopo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,7 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <cstdlib>
 
 
 #include "CGIHandler.hpp"
@@ -80,6 +81,7 @@ std::string mcamilli(const std::vector<T>& value){
 
 Server& getServerByHost(const HTTPRequest& request, const Config & config);
 void printMap(std::map<std::string, std::string>& map, std::string first, std::string second);
-
+std::string getHeaderValue(const std::string toFind, const HTTPRequest& request);
+std::string CreateFileName(const HTTPRequest& request);
 
 #endif // WEBSERV_hpp

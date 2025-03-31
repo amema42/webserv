@@ -16,7 +16,7 @@ std::string getHeaderValue(const std::string toFind, const HTTPRequest& request)
         return it->second;
     else{
         std::cout << "no value can be found" << std::endl;
-        return it->first;
+        return "";
     }
 }
 
@@ -44,6 +44,30 @@ void printMap(std::map<std::string, std::string>& map, std::string first, std::s
         std::cout << first <<it->first << second << it->second << std::endl;
         it++;
     }
+}
+
+//in caso si potrebbe creare una classe se serviranno più dati dall'header del post
+std::string CreateFileName(const HTTPRequest& request){
+    std::map<std::string, std::string> map = request.headers;
+    printMap(map, "1", " 2");
+    std::cout <<"IL BODY"<< request.body << std::endl;
+    
+    std::string rawType = getHeaderValue("Content-Type", request);
+    std::string filename;
+    std::istringstream stream(rawType);
+    std::string type;
+    stream >>  type;
+    std::cout << "content type = " << type << std::endl;
+    if(type == "multipart/form-data;"){
+        std::cout << "aaaaaaaaaaaaaa" <<std::endl;
+        std::string rawDisposition = getHeaderValue("Content-Disposition",request);
+        std:: istringstream stream2(rawDisposition);
+        std::string tmp;
+        while(stream2 >> tmp)
+            filename = tmp;
+    }
+    std::cout<<"il file name  è: "<< filename<<std::endl;
+    return "tmp";
 }
 
 

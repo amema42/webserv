@@ -16,9 +16,6 @@
 #include <poll.h>
 #include <cerrno>
 #include <algorithm>
-
-
-// #including libraries /headers for socket programming
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -26,7 +23,6 @@
 #include <unistd.h>
 
 HTTPServer::HTTPServer(const Config &config) : _config(config) {
-    // Init degli socket in base alla configurazione
     initSockets();
 }
 
@@ -110,6 +106,20 @@ void HTTPServer::handleGetRequest(const HTTPRequest& request, HTTPResponse& resp
     return;
 }
 
+void HTTPServer::handlePostRequest(const HTTPRequest& request, HTTPResponse& response){
+    
+    Server& server =  getServerByHost(request, _config);
+//    size_t i = std::strtol((getHeaderValue("Content-Length", request)).c_str(), NULL, 10);
+    std::string fileName = CreateFileName(request);
+    std::cout << "server max body size: " << server.client_max_body_size[0] << std::endl;
+    response.body = "<html><body><h1>Ciao, Mondo dal post!</h1></body></html>";
+    //if mutyme == multipart/form-data{
+    //gestione del filename di base altrimenti si usa il tipo espresso in content type se il campo è solo testo si salva in modo standard
+    //}
+    // i <= server.max_body_size;
+    //crateFile
+}
+
 void HTTPServer::handleClientRequest(ClientConnection *clientConn, const std::string &rawRequest) {
     // 1. Creo un "oggetto" per il parsing della richiesta ed uno per la risposta!!!
     HTTPRequest request;
@@ -142,18 +152,15 @@ void HTTPServer::handleClientRequest(ClientConnection *clientConn, const std::st
     }
     else if (request.method == "POST"){
         std::cout<< "handle POST request" << std::endl;
-        //handlepost();
-        response.body = "<html><body><h1>Ciao, Mondo dal post!</h1></body></html>";
+        handlePostRequest(request, response);
     }
     else {
         std::cout << "handle DELETE request" << std::endl;
         response.body = "<html><body><h1>Ciao, Mondo!</h1></body></html>";
     }
-    response.setHeader("Content-Type", "text/html");
-    // response example: pagina HTML statica
-    // bisogna fornire la pagina richiesta 
-    
-    // set the **Content-Length** (C++98 usa std::ostringstream per la conversione)
+
+    response.setHeader("Content-Type", "text/html");//setteare l'header in base alla risposta da dare
+
     std::ostringstream oss;
     oss << response.body.size();
     response.setHeader("Content-Length", oss.str());
@@ -200,7 +207,7 @@ void HTTPServer::eventLoop() {
     // 1. Costruire una struttura (ad esempio std::vector<pollfd>) per gestire eventi di lettura e scrittura.
 
     // Ad es.:
-
+    bool loop = true;
     std::vector<pollfd> pollfds;
     // Aggiungi i socket di ascolto a pollfds
     for (size_t i = 0; i < _listenSockets.size(); ++i) {
@@ -213,7 +220,7 @@ void HTTPServer::eventLoop() {
     
     std::cout << "start event loop..." << std::endl;
 
-    while (true)
+    while (loop)
     {
         int ret = poll(&pollfds[0], pollfds.size(), -1);
         if (ret < 0)
