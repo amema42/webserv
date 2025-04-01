@@ -1,4 +1,954 @@
+<!-- v2 -->
 <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Webserv</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: white;
+            color: #3D3D3D;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 0 40px;
+            position: relative;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+        header {
+            padding-top: 10px;
+        }
+        h1 {
+            font-size: 20vw;
+            font-weight: 900;
+            line-height: 0.8;
+            width: 100%;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            margin-bottom: 0;
+            transition: color 0.2s ease;
+        }
+        @media (max-width: 1200px) {
+            h1 {
+                font-size: 25vw;
+            }
+        }
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 30vw;
+                line-height: 0.9;
+            }
+        }
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 35vw;
+            }
+        }
+        .content {
+            margin-top: 10px;
+            position: relative;
+            flex-grow: 1;
+        }
+        p {
+            font-size: 1.25rem;
+            margin-bottom: 30px;
+            max-width: 600px;
+            transition: color 0.2s ease;
+        }
+        .methods {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: nowrap;
+        }
+        .method-link {
+            text-decoration: none;
+            color: #1b1b1b;
+            font-size: 2.7rem;
+            font-weight: bold;
+            transition: color 0.2s ease;
+        }
+        .method-link:hover {
+            color: #3D3D3D;
+        }
+        .navbar {
+            padding: 0px 0 20px 0;
+            display: flex;
+            gap: 20px;
+            margin-top: auto;
+        }
+        .nav-link {
+            text-decoration: none;
+            color: #1b1b1b;
+            font-size: 1rem;
+            transition: color 0.2s ease;
+        }
+        .nav-link:hover {
+            color: #3D3D3D;
+        }
+        .nav-link.active {
+            text-decoration: underline;
+            text-decoration-color: #204e2a;
+        }
+        @media (max-width: 768px) {
+            body {
+                padding: 0 20px;
+            }
+            .methods {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            .navbar {
+                padding: 20px 0;
+            }
+        }
+        .justified {
+            text-align: justify;
+            max-width: 800px;
+        }
+        .link {
+            font-family: "Times New Roman", Times, serif;
+            position: relative;
+            display: inline-block;
+            padding: 0;
+            margin-right: 12px;
+            line-height: 1em;
+            text-decoration: none;
+        }
+        .link--top {
+            font-family: "Times New Roman", Times, serif;
+            position: absolute;
+            color: blue;
+            top: 0;
+            display: inline-block;
+            clip-path: polygon(0% 66%, 0% 0%, 100% 0%, 100% 40%);
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.25s, color 0.5s ease 0.22s;
+        }
+
+        .link--top:after {
+            font-family: "Times New Roman", Times, serif;
+            content: "";
+            position: absolute;
+            top: 36%;
+            left: 0;
+            width: 100%;
+            height: 4%;
+            background: red;
+            transform: rotateZ(-2.2deg) scaleX(0%);
+            transform-origin: right top;
+            transition: transform 0.2s ease 0.22s;
+        }
+
+        .link--bottom {
+            font-family: "Times New Roman", Times, serif;
+            display: inline-block;
+            clip-path: polygon(0% 65%, 100% 40%, 100% 110%, 0% 110%);
+            color: blue;
+            background-size: 200% 8%;
+            background-position: left bottom;
+            background-repeat: no-repeat;
+            background-image: linear-gradient(to right, red 50%, transparent 50%);
+            text-decoration: none;
+            transition: color 0.5s ease 0.22s, background-position 0.2s ease 0.22s;
+        }
+
+        .link--bottom:after {
+            font-family: "Times New Roman", Times, serif;
+            content: "";
+            position: absolute;
+            top: 40%;
+            left: 0;
+            width: 100%;
+            height: 4%;
+            background: red;
+            transform: rotateZ(-2deg) scaleX(0%);
+            transform-origin: right top;
+            transition: transform 0.2s ease 0.22s;
+        }
+
+        .link:hover .link--top {
+            font-family: "Times New Roman", Times, serif;
+            color: red;
+            transform: translateY(-0.5em) rotateZ(-3deg);
+            transition: transform 0.5s cubic-bezier(.12,.8,.57,1.00) 0.42s, color 0.5s ease 0.22s;
+        }
+
+        .link:hover .link--bottom {
+            font-family: "Times New Roman", Times, serif;
+            color: red;
+            background-position: 100% bottom;
+            transition: color 0.5s ease 0.2s, background-position 0.2s ease;
+        }
+
+        .link:hover .link--top:after {
+            font-family: "Times New Roman", Times, serif;
+            top: 62%;
+            transform-origin: left top;
+            transform: rotateZ(-2.2deg) scaleX(100%);
+        }
+
+        .link:hover .link--bottom:after {
+            font-family: "Times New Roman", Times, serif;
+            top: 65%;
+            transform-origin: left top;
+            transform: rotateZ(-2.1deg) scaleX(100%);
+        }
+        .method-link {
+            position: relative;
+            color: #1b1b1b;
+            font-size: 2.7rem;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        .method-link::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            bottom: 0px;
+            width: 100%;
+            height: 3px;
+            background-color: currentColor;
+            transform: scaleX(0.05);
+            transform-origin: left center;
+            transition: transform 0.3s ease;
+        }
+
+        .method-link:hover::after {
+            transform: scaleX(1);
+        }
+
+        .method-link:hover {
+            color: #3D3D3D;
+        }
+
+        .upload-wrapper {
+            margin-top: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+            font-size: 1rem;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        .custom-file-upload {
+            background-color: #000000;
+            border: 2px solid #000000;
+            color: #ffffff;
+            padding: 10px 20px;
+            border-radius: 0px;
+            cursor: pointer;
+            font-weight:normal;
+            transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+            user-select: none;
+        }
+
+        .custom-file-upload:hover {
+            color: #000000;
+            background-color: #ffffff;
+            border-color: #000000;
+        }
+
+        .custom-file-upload input[type="file"] {
+            display: none;
+        }
+
+        #file-name {
+            color: #555;
+            font-style:unset;
+        }
+        .file-name-display {
+            margin-top: 8px;
+            font-size: 0.95rem;
+            color: #555;
+            transition: color 0.2s ease;
+        }
+        /*Dark Mode*/
+        body.dark-mode {
+            background-color: #121212;
+            color: #f5f5f5;
+        }
+
+        body.dark-mode .method-link {
+            color: #f5f5f5;
+        }
+
+        body.dark-mode .method-link:hover {
+            color: #ffffff;
+        }
+
+        body.dark-mode .nav-link {
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .nav-link:hover {
+            color: #ffffff;
+        }
+
+        body.dark-mode .custom-file-upload {
+            background-color: #f5f5f5;
+            color: #121212;
+            border-color: #f5f5f5;
+        }
+
+        body.dark-mode .custom-file-upload:hover {
+            background-color: #121212;
+            color: #f5f5f5;
+            border-color: #f5f5f5;
+        }
+
+        body.dark-mode .file-name-display {
+            color: #cccccc;
+        }
+
+        body.dark-mode .link--top,
+        body.dark-mode .link--bottom {
+            color: #66aaff;
+        }
+
+        body.dark-mode .link:hover .link--top,
+        body.dark-mode .link:hover .link--bottom {
+            color: #ff4444;
+        }
+
+        body.dark-mode h1 {
+            color: #eeeeee;
+        }
+
+        .upper-text {
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Webserv</h1>
+    </header>
+    <div class="content">
+      <p class="justified" style="width: 100ch;">
+        A simple HTTP server in C++98 that processes GET, POST, and DELETE requests, serves static websites, handles file uploads, and supports non-blocking I/O with a configuration file for routes, ports, and error pages.
+      </p>
+      <div class="methods" style="flex-direction: column; align-items: flex-start; gap: 10px;">
+        <a href="/delete" class="method-link">Delete</a>
+        <a href="/post" class="method-link">Post</a>
+        <a href="/get" class="method-link">Get</a>
+      </div>
+      <div class="upload-wrapper">
+        <label class="custom-file-upload">
+          Upload a file
+          <input type="file" id="fileInput" />
+        </label>
+        <div id="file-name" class="file-name-display">No file chosen</div>
+      </div>
+      
+    </div>
+    </div>
+    <p style="margin-bottom: px 0;">
+      <a class="link" href="https://github.com/amema42" target="_blank" rel="noreferrer">
+        <span class="link--top">Ani MEMA</span>
+        <span class="link--bottom">Ani MEMA</span>
+      </a>,
+      <a class="link" href="https://github.com/raviolotto" target="_blank" rel="noreferrer">
+        <span class="link--top">Jacopo CARDINAux</span>
+        <span class="link--bottom">Jacopo CARDINAux</span>
+      </a>,
+      <a class="link" href="https://github.com/ippatteo" target="_blank" rel="noreferrer">
+        <span class="link--top">Matteo CAMILLI</span>
+        <span class="link--bottom">Matteo CAMILLI</span>
+      </a>
+    </p>
+    <nav class="navbar">
+        <a href="/" class="nav-link active">home</a>
+        <a href="/about" class="nav-link">about</a>
+        <button id="mode-toggle" class="nav-link" style="border: none; background: none; cursor: pointer; margin-left: auto;">Mode</button>
+    </nav>
+    <script>
+      const input = document.getElementById('fileInput');
+      const fileNameDisplay = document.getElementById('file-name');
+      const modeToggle = document.getElementById('mode-toggle');
+      const body = document.body;
+    
+      // Mostra nome file scelto
+      input.addEventListener('change', () => {
+        if (input.files.length > 0) {
+          fileNameDisplay.textContent = `Chosen file: ${input.files[0].name}`;
+        } else {
+          fileNameDisplay.textContent = 'No file chosen';
+        }
+      });
+    
+      // Rileva preferenza sistema
+      const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+      let isDarkMode = prefersDarkScheme.matches;
+    
+      // Applica modalità iniziale
+      function setInitialMode() {
+        if (isDarkMode) {
+          body.classList.add('dark-mode');
+          modeToggle.textContent = 'Light Mode';
+        } else {
+          body.classList.remove('dark-mode');
+          modeToggle.textContent = 'Dark Mode';
+        }
+      }
+    
+      setInitialMode();
+    
+      // Transizione semplice e immediata
+      modeToggle.addEventListener('click', () => {
+        isDarkMode = !isDarkMode;
+        body.classList.toggle('dark-mode', isDarkMode);
+        modeToggle.textContent = isDarkMode ? 'Light Mode' : 'Dark Mode';
+      });
+    </script>
+</body>
+</html>
+
+<!-- v1 -->
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Webserv</title>
+    <style>
+#overlay-transition {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0;
+  background-color: white;
+  /* transition: opacity 0.6s ease-in-out; */
+  /* backdrop-filter: blur(3px); */
+  transform: scale(1);
+}
+
+body.dark-mode #overlay-transition {
+  background-color: #121212;
+}
+
+#overlay-transition.show {
+  opacity: 1;
+  transform: scale(1.02);
+}
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: white;
+            color: #3D3D3D;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 0 40px;
+            position: relative;
+            transition: background-color 0.4s ease, color 0.4s ease;
+            transition-property: background-color, color;
+            transition-duration: 0.4s;
+            transition-timing-function: ease;
+        }
+        header {
+            padding-top: 10px;
+            transition: color 0.4s ease, background-color 0.4s ease, border-color 0.4s ease;
+        }
+        h1 {
+            font-size: 20vw;
+            font-weight: 900;
+            line-height: 0.8;
+            width: 100%;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            margin-bottom: 0;
+            /* transition: color 0.4s ease, background-color 0.2s ease, border-color 0.2s ease; transition 4 toggle */
+            transition: color 0.2s ease-in-out;
+        }
+        @media (max-width: 1200px) {
+            h1 {
+                font-size: 25vw;
+            }
+        }
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 30vw;
+                line-height: 0.9;
+            }
+        }
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 35vw;
+            }
+        }
+        .content {
+            margin-top: 10px;
+            position: relative;
+            flex-grow: 1;
+            transition: color 0.4s ease, background-color 0.4s ease, border-color 0.4s ease;
+        }
+        p {
+            font-size: 1.25rem;
+            margin-bottom: 30px;
+            max-width: 600px;
+            transition: color 0.4s ease, background-color 0.4s ease, border-color 0.4s ease;
+        }
+        .methods {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: nowrap;
+            transition: color 0.4s ease, background-color 0.4s ease, border-color 0.4s ease;
+        }
+        .method-link {
+            text-decoration: none;
+            color: #1b1b1b;
+            font-size: 2.7rem;
+            font-weight: bold;
+            transition: color 0.3s ease;
+            transition: color 0.4s ease, background-color 0.4s ease, border-color 0.4s ease;
+        }
+        .method-link:hover {
+            color: #3D3D3D;
+        }
+        .navbar {
+            padding: 0px 0 20px 0;
+            display: flex;
+            gap: 20px;
+            margin-top: auto;
+            transition: color 0.4s ease, background-color 0.4s ease, border-color 0.4s ease;
+        }
+        .nav-link {
+            text-decoration: none;
+            color: #1b1b1b;
+            font-size: 1rem;
+            transition: color 0.3s ease;
+            transition: color 0.4s ease, background-color 0.4s ease, border-color 0.4s ease;
+        }
+        .nav-link:hover {
+            color: #3D3D3D;
+        }
+        .nav-link.active {
+            text-decoration: underline;
+            text-decoration-color: #204e2a;
+        }
+        @media (max-width: 768px) {
+            body {
+                padding: 0 20px;
+            }
+            .methods {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            .navbar {
+                padding: 20px 0;
+            }
+        }
+        .justified {
+    text-align: justify;
+    max-width: 800px;
+  }
+  .link {
+  font-family: "Times New Roman", Times, serif;
+  position: relative;
+  display: inline-block;
+  padding: 0;
+  margin-right: 12px;
+  line-height: 1em;
+  text-decoration: none;
+  transition: color 0.4s ease, background-color 0.4s ease, border-color 0.4s ease;
+}
+.link--top {
+  font-family: "Times New Roman", Times, serif;
+  /* font-size: 1.5rem; */
+  position: absolute;
+  color: blue;
+  top: 0;
+  display: inline-block;
+  clip-path: polygon(0% 66%, 0% 0%, 100% 0%, 100% 40%);
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.25s, color 0.5s ease 0.22s;
+}
+
+.link--top:after {
+  font-family: "Times New Roman", Times, serif;
+  content: "";
+  position: absolute;
+  top: 36%;
+  left: 0;
+  width: 100%;
+  height: 4%;
+  background: red;
+  transform: rotateZ(-2.2deg) scaleX(0%);
+  transform-origin: right top;
+  transition: transform 0.2s ease 0.22s;
+}
+
+.link--bottom {
+  /* font-size: 1.5rem; */
+  font-family: "Times New Roman", Times, serif;
+  display: inline-block;
+  clip-path: polygon(0% 65%, 100% 40%, 100% 110%, 0% 110%);
+  color: blue;
+  background-size: 200% 8%;
+  background-position: left bottom;
+  background-repeat: no-repeat;
+  background-image: linear-gradient(to right, red 50%, transparent 50%);
+  text-decoration: none;
+  transition: color 0.5s ease 0.22s, background-position 0.2s ease 0.22s;
+  /* transition: color 0.4s ease, background-color 0.4s ease, border-color 0.4s ease; */
+}
+
+.link--bottom:after {
+  font-family: "Times New Roman", Times, serif;
+  content: "";
+  position: absolute;
+  top: 40%;
+  left: 0;
+  width: 100%;
+  height: 4%;
+  background: red;
+  transform: rotateZ(-2deg) scaleX(0%);
+  transform-origin: right top;
+  transition: transform 0.2s ease 0.22s;
+}
+
+.link:hover .link--top {
+  font-family: "Times New Roman", Times, serif;
+  color: red;
+  transform: translateY(-0.5em) rotateZ(-3deg);
+  transition: transform 0.5s cubic-bezier(.12,.8,.57,1.00) 0.42s, color 0.5s ease 0.22s;
+}
+
+.link:hover .link--bottom {
+  font-family: "Times New Roman", Times, serif;
+  color: red;
+  background-position: 100% bottom;
+  transition: color 0.5s ease 0.2s, background-position 0.2s ease;
+}
+
+.link:hover .link--top:after {
+  font-family: "Times New Roman", Times, serif;
+  top: 62%;
+  transform-origin: left top;
+  transform: rotateZ(-2.2deg) scaleX(100%);
+}
+
+.link:hover .link--bottom:after {
+  font-family: "Times New Roman", Times, serif;
+  top: 65%;
+  transform-origin: left top;
+  transform: rotateZ(-2.1deg) scaleX(100%);
+}
+.method-link {
+  position: relative;
+  color: #1b1b1b;
+  font-size: 2.7rem;
+  font-weight: bold;
+  text-decoration: none;
+  transition: color 0.3s ease;
+  transition: color 0.4s ease, background-color 0.4s ease, border-color 0.4s ease;
+}
+
+.method-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0px;
+  width: 100%;
+  height: 3px;
+  background-color: currentColor;
+  transform: scaleX(0.05); /* hmmmmmmmmm boh */
+  transform-origin: left center;
+  transition: transform 0.3s ease;
+}
+
+.method-link:hover::after {
+  transform: scaleX(1);
+}
+
+.method-link:hover {
+  color: #3D3D3D;
+}
+
+/* .upload-wrapper {
+  margin-top: 30px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  font-size: 1rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+} */
+.upload-wrapper {
+  margin-top: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 1rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  transition: color 0.4s ease, background-color 0.4s ease, border-color 0.4s ease;
+}
+
+
+.custom-file-upload {
+  background-color: #000000;
+  border: 2px solid #000000;
+  color: #ffffff;
+  padding: 10px 20px;
+  border-radius: 0px;
+  cursor: pointer;
+  font-weight:normal;
+  transition: background-color 0.3s, border-color 0.3s;
+  user-select: none;
+}
+
+.custom-file-upload:hover {
+  color: #000000;
+  background-color: #ffffff;
+  border-color: #000000;
+}
+
+.custom-file-upload input[type="file"] {
+  display: none;
+}
+
+#file-name {
+  color: #555;
+  font-style:unset;
+}
+.file-name-display {
+  margin-top: 8px;
+  font-size: 0.95rem;
+  color: #555;
+}
+/*Dark Mode*/
+body.dark-mode {
+  background-color: #121212;
+  color: #f5f5f5;
+}
+
+body.dark-mode .method-link {
+  color: #f5f5f5;
+}
+
+body.dark-mode .method-link:hover {
+  color: #ffffff;
+}
+
+body.dark-mode .nav-link {
+  color: #e0e0e0;
+}
+
+body.dark-mode .nav-link:hover {
+  color: #ffffff;
+}
+
+/* body.dark-mode .nav-link.active {
+  text-decoration-color: #88ffcc;
+} */
+
+body.dark-mode .custom-file-upload {
+  background-color: #f5f5f5;
+  color: #121212;
+  border-color: #f5f5f5;
+}
+
+body.dark-mode .custom-file-upload:hover {
+  background-color: #121212;
+  color: #f5f5f5;
+  border-color: #f5f5f5;
+}
+
+body.dark-mode .file-name-display {
+  color: #cccccc;
+}
+
+body.dark-mode .link--top,
+body.dark-mode .link--bottom {
+  color: #66aaff;
+}
+
+body.dark-mode .link:hover .link--top,
+body.dark-mode .link:hover .link--bottom {
+  color: #ff4444;
+}
+
+body.dark-mode h1 {
+  color: #eeeeee;
+}
+
+.upper-text {
+  text-transform: uppercase;
+}
+    </style>
+</head>
+<body>
+  <div id="overlay-transition"></div> 
+    <header>
+        <h1>Webserv</h1>
+    </header>
+    <div class="content">
+      <p class="justified" style="width: 100ch;">
+        A simple HTTP server in C++98 that processes GET, POST, and DELETE requests, serves static websites, handles file uploads, and supports non-blocking I/O with a configuration file for routes, ports, and error pages.
+      </p>
+      <p>by ani mema, jacopo cardinaux, matteo camilli</p>
+      <div class="methods" style="flex-direction: column; align-items: flex-start; gap: 10px;">
+        <a href="/delete" class="method-link">Delete</a>
+        <a href="/post" class="method-link">Post</a>
+        <a href="/get" class="method-link">Get</a>
+      </div>
+      <div class="upload-wrapper">
+        <label class="custom-file-upload">
+          Upload a file
+          <input type="file" id="fileInput" />
+        </label>
+        <span id="file-name">No file chosen</span>
+      </div> -->
+      <!-- <div class="upload-wrapper">
+        <label class="custom-file-upload">
+          Upload a file
+          <input type="file" id="fileInput" />
+        </label>
+        <div id="file-name" class="file-name-display">No file chosen</div>
+      </div>
+      
+    </div>
+    </div>
+    <p style="margin-bottom: px 0;">
+      <a class="link" href="https://github.com/amema42" target="_blank" rel="noreferrer">
+        <span class="link--top">Ani MEMA</span>
+        <span class="link--bottom">Ani MEMA</span>
+      </a>,
+      <a class="link" href="https://github.com/raviolotto" target="_blank" rel="noreferrer">
+        <span class="link--top">Jacopo CARDINAux</span>
+        <span class="link--bottom">Jacopo CARDINAux</span>
+      </a>,
+      <a class="link" href="https://github.com/ippatteo" target="_blank" rel="noreferrer">
+        <span class="link--top">Matteo CAMILLI</span>
+        <span class="link--bottom">Matteo CAMILLI</span>
+      </a>
+    </p>
+    <nav class="navbar">
+        <a href="/" class="nav-link active">home</a>
+        <a href="/about" class="nav-link">about</a>
+        <button id="mode-toggle" class="nav-link" style="border: none; background: none; cursor: pointer; margin-left: auto;">Mode</button>
+    </nav> -->
+    <!-- <script>
+      const input = document.getElementById('fileInput');
+      const fileNameDisplay = document.getElementById('file-name');
+    
+      input.addEventListener('change', () => {
+        if (input.files.length > 0) {
+          fileNameDisplay.textContent = input.files[0].name;
+        } else {
+          fileNameDisplay.textContent = 'No file chosen';
+        }
+      });
+    </script> -->
+    <!-- <script>
+      const input = document.getElementById('fileInput');
+      const fileNameDisplay = document.getElementById('file-name');
+    
+      input.addEventListener('change', () => {
+        if (input.files.length > 0) {
+          fileNameDisplay.textContent = `Chosen file: ${input.files[0].name}`;
+        } else {
+          fileNameDisplay.textContent = 'No file chosen';
+        }
+      });
+    </script> -->
+    <!-- <script>
+      const input = document.getElementById('fileInput');
+      const fileNameDisplay = document.getElementById('file-name');
+      const modeToggle = document.getElementById('mode-toggle');
+      const body = document.body;
+    
+      // Mostra nome file scelto
+      input.addEventListener('change', () => {
+        if (input.files.length > 0) {
+          fileNameDisplay.textContent = `Chosen file: ${input.files[0].name}`;
+        } else {
+          fileNameDisplay.textContent = 'No file chosen';
+        }
+      });
+    
+      const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+      let isDarkMode = prefersDarkScheme.matches;
+    
+      if (isDarkMode) {
+        body.classList.add('dark-mode');
+        modeToggle.textContent = 'Light Mode';
+      } else {
+        body.classList.remove('dark-mode');
+        modeToggle.textContent = 'Dark Mode';
+      }
+    
+      modeToggle.addEventListener('click', () => {
+        isDarkMode = !isDarkMode;
+        body.classList.toggle('dark-mode', isDarkMode);
+        modeToggle.textContent = isDarkMode ? 'Light Mode' : 'Dark Mode';
+      });
+    </script> -->
+    <!-- <script>
+      const input = document.getElementById('fileInput');
+      const fileNameDisplay = document.getElementById('file-name');
+      const modeToggle = document.getElementById('mode-toggle');
+      const body = document.body;
+      const overlay = document.getElementById('overlay-transition');
+    
+      input.addEventListener('change', () => {
+        if (input.files.length > 0) {
+          fileNameDisplay.textContent = `Chosen file: ${input.files[0].name}`;
+        } else {
+          fileNameDisplay.textContent = 'No file chosen';
+        }
+      });
+    
+      const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+      let isDarkMode = prefersDarkScheme.matches;
+    
+      function setInitialMode() {
+        if (isDarkMode) {
+          body.classList.add('dark-mode');
+          modeToggle.textContent = 'Light Mode';
+        } else {
+          body.classList.remove('dark-mode');
+          modeToggle.textContent = 'Dark Mode';
+        }
+      }
+    
+      setInitialMode();
+    
+      modeToggle.addEventListener('click', () => {
+        overlay.classList.add('show');
+    
+        setTimeout(() => {
+          isDarkMode = !isDarkMode;
+          body.classList.toggle('dark-mode', isDarkMode);
+        }, 150); // Cambia modalità mentre overlay è opaco
+    
+        setTimeout(() => {
+          overlay.classList.remove('show');
+          modeToggle.textContent = isDarkMode ? 'Light Mode' : 'Dark Mode';
+        }, 650); // Dopo che l'effetto visivo è terminato
+      });
+    </script>
+</body>
+</html> -->
+
+<!-- v0 -->
+<!-- <!DOCTYPE html>
 <html lang="it">
 <head>
     <meta charset="UTF-8">
@@ -66,4 +1016,4 @@
         <a href="/get" class="get-button">Vai alla pagina /get</a>
     </div>
 </body>
-</html>
+</html> -->

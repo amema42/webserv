@@ -114,7 +114,7 @@ void HTTPServer::handleClientRequest(ClientConnection *clientConn, const std::st
     else
         response.setStatus(200, "OK");
     
-    //gestione dei varii casi
+    //gestione dei vari casi
     if (request.uri.find("cgi-bin") != std::string::npos){
         std::cout << "handle cgi request" << std::endl;
         CGIHandler cgi(request.uri);

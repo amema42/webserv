@@ -1,69 +1,279 @@
+<!-- v1 -->
 <!DOCTYPE html>
-<html lang="it">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Benvenuto al Mio Webserver</title>
+    <title>Webserv</title>
     <style>
-      body {
-        margin: 0;
-        padding: 0;
-        font-family: Arial, sans-serif;
-        background-color: #f4f4f4;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-      }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        @font-face {
+  font-family: 'Inconsolata';
+  src: url('https://ggayane.github.io/css-experiments/Inconsolata-VF.ttf');
+  font-weight: 275 900;
+  font-stretch: 50% 200%;
+}
+        body {
+            /* font-family: 'Helvetica Neue', Arial, sans-serif; */
+            font-family: 'Inconsolata', monospace;
+            background-color: white;
+            color: #3D3D3D;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 0 40px;
+            position: relative;
+        }
+        header {
+            padding-top: 10px;
+        }
+        h1 {
+            font-size: 20vw;
+            font-weight: 900;
+            line-height: 0.8;
+            width: 100%;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            margin-bottom: 0;
+        }
+        @media (max-width: 1200px) {
+            h1 {
+                font-size: 25vw;
+            }
+        }
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 30vw;
+                line-height: 0.9;
+            }
+        }
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 35vw;
+            }
+        }
+        .content {
+            margin-top: 10px;
+            position: relative;
+            flex-grow: 1;
+        }
+        p {
+            font-size: 1.25rem;
+            margin-bottom: 30px;
+            max-width: 600px;
+        }
+        .methods {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .method-link {
+            text-decoration: none;
+            color: #1b1b1b;
+            font-size: 2.7rem;
+            font-weight: bold;
+            transition: color 0.3s ease;
+        }
+        .method-link:hover {
+            color: #3D3D3D;
+        }
+        .navbar {
+            padding: 40px 0 20px 0;
+            display: flex;
+            gap: 20px;
+            margin-top: auto;
+        }
+        .nav-link {
+            text-decoration: none;
+            color: #1b1b1b;
+            font-size: 1rem;
+            transition: color 0.3s ease;
+        }
+        .nav-link:hover {
+            color: #3D3D3D;
+        }
+        .nav-link.active {
+            text-decoration: underline;
+            text-decoration-color: #204e2a;
+        }
+        @media (max-width: 768px) {
+            body {
+                padding: 0 20px;
+            }
+            .methods {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            .navbar {
+                padding: 20px 0;
+            }
+        }
+        .stretchy {
+  font-stretch: 100%;
+  animation: stretchAnim 6s  ease-in-out; /* removed: infinite */
+  display: inline-block;
+}
 
-      .container {
-        text-align: center;
-        background-color: #fff;
-        padding: 40px;
-        border-radius: 10px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      }
+@keyframes stretchAnim {
+  0% {
+    font-stretch: 100%;
+  }
+  50% {
+    font-stretch: 120%;
+  }
+  100% {
+    font-stretch: 100%;
+  }
+}
 
-      h1 {
-        font-size: 2.5em;
-        color: #333;
-        margin-bottom: 20px;
-      }
-
-      p {
-        font-size: 1.2em;
-        color: #666;
-      }
-
-      .contact-message {
-        font-size: 1em;
-        color: #888;
-        margin-top: 20px;
-      }
-
-      .get-button {
-        display: inline-block;
-        margin-top: 20px;
-        padding: 10px 20px;
-        background-color: #4CAF50;
-        color: white;
-        text-decoration: none;
-        border-radius: 5px;
-        font-size: 1.1em;
-        transition: background-color 0.3s ease;
-      }
-
-      .get-button:hover {
-        background-color: #45a049;
-      }
     </style>
 </head>
-<body >
-    <div class="container">
-        <h1>Benvenuto al Mio Webserver!</h1>
-        <p>bella a tutti ragazzi eccovi sul mio webserver qui dropperò tutte le info relative al mio only fans a tema minecraft.</p>
-        <p class="contact-message">ani fai delle pagine html belle pls🙏.</p>
-        <a href="/get" class="get-button">Vai alla pagina /get</a>
+<body>
+    <header>
+        <h1 class="stretchy">Webserv</h1>
+    </header>
+    <div class="content">
+        <p>by amema, jcardina, mcamilli</p>
+        <div class="methods">
+            <a href="/get" class="method-link" style="text-decoration: underline; text-decoration-color: rgb(192, 255, 192);">Get</a>
+            <a href="/post" class="method-link" style="text-decoration: underline;text-decoration-color: rgb(192, 199, 255);">Post</a>
+            <a href="/delete" class="method-link" style="text-decoration: underline; text-decoration-color: rgb(255, 192, 192);">Delete</a>
+        </div>
     </div>
+    <nav class="navbar">
+        <a href="/" class="nav-link active">home</a>
+        <a href="/about" class="nav-link">about</a>
+    </nav>
 </body>
 </html>
+
+<!-- v0 -->
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Webserv</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: white;
+            color: #3D3D3D;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 0 40px;
+            position: relative;
+        }
+        h1 {
+            font-size: 15vw;
+            font-weight: 900;
+            line-height: 1;
+            width: 100%;
+            padding: 20px 0;
+            word-break: break-word;
+            overflow-wrap: break-word;
+        }
+        @media (max-width: 1200px) {
+            h1 {
+                font-size: 18vw;
+            }
+        }
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 20vw;
+                line-height: 0.9;
+            }
+        }
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 25vw;
+            }
+        }
+        .content {
+            margin-top: 20px;
+            position: relative;
+            flex-grow: 1;
+        }
+        p {
+            font-size: 1.25rem;
+            margin-bottom: 40px;
+            max-width: 600px;
+        }
+        .methods {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .method-link {
+            text-decoration: none;
+            color: #1b1b1b;
+            font-size: 2.7rem;
+            font-weight: bold;
+            transition: color 0.3s ease;
+        }
+        .method-link:hover {
+            color: #3D3D3D;
+        }
+        .navbar {
+            padding: 40px 0;
+            display: flex;
+            gap: 20px;
+            margin-top: auto;
+        }
+        .nav-link {
+            text-decoration: none;
+            color: #1b1b1b;
+            font-size: 1rem;
+            transition: color 0.3s ease;
+        }
+        .nav-link:hover {
+            color: #3D3D3D;
+        }
+        .nav-link.active {
+            text-decoration: underline;
+            text-decoration-color: #204e2a;
+        }
+        @media (max-width: 768px) {
+            body {
+                padding: 0 20px;
+            }
+            .methods {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            .navbar {
+                padding: 20px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Webserv</h1>
+    <div class="content">
+        <p>./webserv 42 School project by amema, jcardina, mcamilli</p>
+        <div class="methods">
+            <a href="/get" class="method-link" style="text-decoration: underline; text-decoration-color: rgb(192, 255, 192);">Get</a>
+            <a href="/post" class="method-link" style="text-decoration: underline;text-decoration-color: rgb(192, 199, 255);">Post</a>
+            <a href="/delete" class="method-link" style="text-decoration: underline; text-decoration-color: rgb(255, 192, 192);">Delete</a>
+        </div>
+    </div>
+    <nav class="navbar">
+        <a href="/" class="nav-link active">home</a>
+        <a href="/about" class="nav-link">about</a>
+    </nav>
+</body>
+</html> -->
