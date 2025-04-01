@@ -30,7 +30,8 @@
 #include <string>
 #include <map>
 #include <cstdlib>
-
+//#include <cstdint>
+#include <climits>
 
 #include "CGIHandler.hpp"
 #include "./Server.hpp" 
@@ -43,6 +44,7 @@
 //#include "Parser.hpp" //parser di ani
 #include "Tokenizer.hpp"
 
+#define SIZE_MAX 18446744073709551615UL
 #define ERROR 0
 #define SERVER 1
 #define OPEN_S_BRACKET 7

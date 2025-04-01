@@ -193,6 +193,46 @@ bool insertInMethods(std::istringstream& iss, std::string& Word, int look_for, L
 
 }
 
+size_t max_body_detection(const std::string& word)
+{
+	std::string sizeStr = word.substr(0, word.size() - 1);
+
+	// Controllo se termina con "K" o "M" (case sensitive)
+	size_t multiplier = 1;
+	char lastChar = sizeStr[sizeStr.size() - 1];
+
+	if (lastChar == 'K')
+	{
+		multiplier = 1024;
+		sizeStr = sizeStr.substr(0, sizeStr.size() - 1);
+	}
+	else if (lastChar == 'M')
+	{
+		multiplier = 1024 * 1024;
+		sizeStr = sizeStr.substr(0, sizeStr.size() - 1);
+	}
+	else if (!isdigit(lastChar)) //fino qua vede se ci sono K M o nulla alla fine se trova altro muore
+	{
+		std::cout << "watch out! only M or K or blank (ex 1000) accepted: ";
+		return static_cast<size_t>(0);
+	}
+	// vede che stringa contenga solo cifre
+	for (size_t i = 0; i < sizeStr.size(); ++i)
+	{
+		if (!isdigit(sizeStr[i]))
+		{
+			std::cout << "watch out for digits!: ";
+			return static_cast<size_t>(0);
+		}
+	}
+	long int converted = atoi(sizeStr.c_str());
+	if (converted <= 0 || static_cast<size_t>(converted) > SIZE_MAX / multiplier)
+	{
+		std::cout << "invalid  value!: ";
+		return static_cast<size_t>(0);
+	}
+	return static_cast<size_t>(converted) * multiplier;
+}
 
 bool insertArgInMax(std::string& Word, int look_for, std::vector<size_t>& args, int n_line)
 {
@@ -201,7 +241,16 @@ bool insertArgInMax(std::string& Word, int look_for, std::vector<size_t>& args, 
 		//std::cout << ((static_cast<int>(args.size())) < (look_for % 10)) << "------\n" ;
 		if (endsWithSemicolon(Word))
 		{
-			args.push_back(static_cast<size_t>(std::atoi(Word.substr(0, Word.size() - 2).c_str())));
+			if (max_body_detection(Word) > 0)
+			{
+				args.push_back(max_body_detection(Word));
+			}
+			else
+			{
+				std::cout << "error at line "<< n_line << std::endl;
+				return false;
+			}
+			//args.push_back(static_cast<size_t>(std::atoi(Word.substr(0, Word.size() - 2).c_str())));
 			//int pop = (look_for % 10 );
 			if (!((static_cast<int>(args.size())) == look_for % 10 || look_for == INDEX_ARG))
 			{
@@ -341,6 +390,7 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
 					}
 					case LISTEN_ARG:
 					{
+						//controllo che sia non utilizzata da altri
 						if (insertArgInListen(Word, look_for, servers.back().listen, n_line))
 						{
 							if (endsWithSemicolon(Word))
@@ -352,6 +402,7 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
 					}
 					case SERVER_NAME_ARG:
 					{
+						//controllo che sia non utilizzata da altri
 						if (insertArgInField(Word, look_for, servers.back().server_name, n_line))
 						{
 							if (endsWithSemicolon(Word))
@@ -363,6 +414,7 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
 					}
 					case ROOT_ARG:
 					{
+						//controllo che sia non utilizzata da altri
 						if (insertArgInField(Word, look_for, servers.back().root, n_line))
 						{
 							if (endsWithSemicolon(Word))
@@ -407,6 +459,7 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
 					}
 					case CLIENT_MAX_BODY_SIZE:
 					{
+						//deve controllare e convertire m k etc
 						if (insertArgInMax(Word, look_for, servers.back().client_max_body_size,  n_line))
 						{
 							if (endsWithSemicolon(Word))
@@ -433,6 +486,7 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
 					}
 					case LOCATION_PATH:
 					{
+						//nessuna location  deve avere lo stesso path, neanche negli altri location
 						servers.back().location.push_back(Location());
 						if (insertArgInField(Word, look_for, servers.back().location.back().path, n_line))
 						{
@@ -482,6 +536,7 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
 					}
 					case L_ROOT_ARG:
 					{
+
 						if (insertArgInField(Word, look_for, servers.back().location.back().l_root, n_line))
 						{
 							if (endsWithSemicolon(Word))
@@ -550,7 +605,7 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
                 		return 0;
     		}
 			// std::cout << "look for =" << look_for << "sono uscito dallo switch\n";
-			// std::cout << Word << " è la parola con cui sono uscito\n";
+			 //std::cout << Word << " è la parola con cui sono uscito\n";
         }
     }
 	//funzione che controlli non ci siano ripetizioni di server name

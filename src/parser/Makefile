@@ -1,6 +1,6 @@
 NAME = parser
 CXX = g++
-CXXFLAGS = -Wall -Wextra -Werror -std=c++11
+CXXFLAGS = -Wall -Wextra -Werror -std=c++98
 INCLUDES = -I../../include
 SRCS = $(wildcard *.cpp)
 OBJS = $(SRCS:.cpp=.o)
