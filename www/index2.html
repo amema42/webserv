@@ -1,4 +1,3 @@
-<!-- v2 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -35,26 +34,11 @@
             margin-bottom: 0;
             transition: color 0.2s ease;
         }
-        @media (max-width: 1200px) {
-            h1 {
-                font-size: 25vw;
-            }
-        }
-        @media (max-width: 768px) {
-            h1 {
-                font-size: 30vw;
-                line-height: 0.9;
-            }
-        }
-        @media (max-width: 480px) {
-            h1 {
-                font-size: 35vw;
-            }
-        }
         .content {
             margin-top: 10px;
             position: relative;
             flex-grow: 1;
+            width: 100%;
         }
         p {
             font-size: 1.25rem;
@@ -110,22 +94,9 @@
             text-decoration: underline;
             text-decoration-color: #204e2a;
         }
-        @media (max-width: 768px) {
-            body {
-                padding: 0 20px;
-            }
-            .methods {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 10px;
-            }
-            .navbar {
-                padding: 20px 0;
-            }
-        }
         .justified {
             text-align: justify;
-            max-width: 800px;
+            max-width: none;
         }
         .link {
             font-family: "Times New Roman", Times, serif;
@@ -340,6 +311,100 @@
         .upper-text {
             text-transform: uppercase;
         }
+
+        /* Miglioramenti alla responsività */
+        @media (max-width: 1200px) {
+            h1 {
+                font-size: 25vw;
+            }
+            .justified {
+                width: 100% !important;
+                max-width: 100%;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 0 20px;
+            }
+            h1 {
+                font-size: 30vw;
+                line-height: 0.9;
+            }
+            .methods {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            .method-link {
+                font-size: 2.2rem;
+            }
+            .navbar {
+                padding: 15px 20px;
+                justify-content: space-between;
+            }
+            p {
+                font-size: 1.1rem;
+            }
+            .justified {
+                text-align: left;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 35vw;
+            }
+            body {
+                padding: 0 15px;
+            }
+            .method-link {
+                font-size: 1.8rem;
+            }
+            .navbar {
+                padding: 12px 15px;
+            }
+            .nav-link {
+                font-size: 0.9rem;
+            }
+            p {
+                font-size: 1rem;
+                margin-bottom: 20px;
+            }
+            .justified {
+                width: 100% !important;
+            }
+            .upload-wrapper {
+                width: 100%;
+            }
+            .custom-file-upload {
+                width: 100%;
+                text-align: center;
+            }
+            .link {
+                display: block;
+                margin-bottom: 10px;
+            }
+        }
+        
+        @media (max-width: 320px) {
+            h1 {
+                font-size: 40vw;
+            }
+            .method-link {
+                font-size: 1.5rem;
+            }
+            .navbar {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+            #mode-toggle {
+                margin-left: 0;
+                width: 100%;
+                order: 3;
+                margin-top: 5px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -349,6 +414,20 @@
     <div class="content">
       <p class="justified" style="width: 100ch;">
         A simple HTTP server in C++98 that processes GET, POST, and DELETE requests, serves static websites, handles file uploads, and supports non-blocking I/O with a configuration file for routes, ports, and error pages.
+      </p>
+      <p style="margin-bottom: 80px;">
+        <a class="link" href="https://github.com/amema42" target="_blank" rel="noreferrer">
+        <span class="link--top">Ani MEMA</span>
+        <span class="link--bottom">Ani MEMA</span>
+        </a>
+        <a class="link" href="https://github.com/raviolotto" target="_blank" rel="noreferrer">
+        <span class="link--top">Jacopo CARDINAux</span>
+        <span class="link--bottom">Jacopo CARDINAux</span>
+        </a>
+        <a class="link" href="https://github.com/ippatteo" target="_blank" rel="noreferrer">
+        <span class="link--top">Matteo CAMILLI</span>
+        <span class="link--bottom">Matteo CAMILLI</span>
+        </a>
       </p>
       <div class="methods" style="flex-direction: column; align-items: flex-start; gap: 10px;">
         <a href="/delete" class="method-link">Delete</a>
@@ -365,20 +444,6 @@
       
     </div>
     </div>
-    <p style="margin-bottom: 80px;">
-      <a class="link" href="https://github.com/amema42" target="_blank" rel="noreferrer">
-      <span class="link--top">Ani MEMA</span>
-      <span class="link--bottom">Ani MEMA</span>
-      </a>
-      <a class="link" href="https://github.com/raviolotto" target="_blank" rel="noreferrer">
-      <span class="link--top">Jacopo CARDINAux</span>
-      <span class="link--bottom">Jacopo CARDINAux</span>
-      </a>
-      <a class="link" href="https://github.com/ippatteo" target="_blank" rel="noreferrer">
-      <span class="link--top">Matteo CAMILLI</span>
-      <span class="link--bottom">Matteo CAMILLI</span>
-      </a>
-    </p>
     <nav class="navbar">
         <a href="/" class="nav-link active">home</a>
         <a href="/about" class="nav-link">about</a>
@@ -390,6 +455,7 @@
       const modeToggle = document.getElementById('mode-toggle');
       const body = document.body;
     
+      // Mostra nome file scelto
       input.addEventListener('change', () => {
         if (input.files.length > 0) {
           fileNameDisplay.textContent = `Chosen file: ${input.files[0].name}`;
@@ -398,9 +464,11 @@
         }
       });
     
+      // Rileva preferenza sistema
       const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
       let isDarkMode = prefersDarkScheme.matches;
     
+      // Applica modalità iniziale
       function setInitialMode() {
         if (isDarkMode) {
           body.classList.add('dark-mode');
@@ -413,6 +481,7 @@
     
       setInitialMode();
     
+      // Transizione semplice e immediata
       modeToggle.addEventListener('click', () => {
         isDarkMode = !isDarkMode;
         body.classList.toggle('dark-mode', isDarkMode);

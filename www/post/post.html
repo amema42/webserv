@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Webserv - Post</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: white;
+            color: #3D3D3D;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 0 40px;
+            position: relative;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+        header {
+            padding-top: 10px;
+        }
+        h1 {
+            font-size: 20vw;
+            font-weight: 900;
+            line-height: 0.8;
+            width: 100%;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            margin-bottom: 0;
+            transition: color 0.2s ease;
+        }
+        .content {
+            margin-top: 10px;
+            position: relative;
+            flex-grow: 1;
+            width: 100%;
+        }
+        p {
+            font-size: 1.25rem;
+            margin-bottom: 30px;
+            max-width: 600px;
+            transition: color 0.2s ease;
+        }
+        .navbar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 20px 40px;
+            display: flex;
+            gap: 20px;
+            background-color: white;
+            transition: background-color 0.2s ease;
+            z-index: 1000;
+            margin-top: auto;
+        }
+        body.dark-mode .navbar {
+            background-color: #121212;
+        }
+        .content {
+            padding-bottom: 60px;
+        }
+        .nav-link {
+            text-decoration: none;
+            color: #1b1b1b;
+            font-size: 1rem;
+            transition: color 0.2s ease;
+        }
+        .nav-link:hover {
+            color: #3D3D3D;
+        }
+        .nav-link.active {
+            text-decoration: underline;
+            text-decoration-color: #204e2a;
+        }
+        .justified {
+            text-align: justify;
+            max-width: none;
+        }
+        
+        .upper-text {
+            text-transform: uppercase;
+        }
+
+        /* File Upload Styling */
+        .upload-section {
+            margin-top: 40px;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .upload-wrapper {
+            margin-top: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 15px;
+            font-size: 1rem;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            width: 100%;
+        }
+
+        .custom-file-upload {
+            background-color: #000000;
+            border: 2px solid #000000;
+            color: #ffffff;
+            padding: 10px 20px;
+            border-radius: 0px;
+            cursor: pointer;
+            font-weight: normal;
+            transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+            user-select: none;
+            width: 100%;
+            max-width: 300px;
+            text-align: center;
+        }
+
+        .custom-file-upload:hover {
+            color: #000000;
+            background-color: #ffffff;
+            border-color: #000000;
+        }
+
+        .custom-file-upload input[type="file"] {
+            display: none;
+        }
+
+        #file-name {
+            color: #555;
+            font-style: unset;
+        }
+        
+        .file-name-display {
+            margin-top: 8px;
+            font-size: 0.95rem;
+            color: #555;
+            transition: color 0.2s ease;
+        }
+
+        .submit-button {
+            background-color: #000000;
+            border: 2px solid #000000;
+            color: #ffffff;
+            padding: 10px 20px;
+            border-radius: 0px;
+            cursor: pointer;
+            font-weight: normal;
+            transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+            margin-top: 20px;
+            width: 100%;
+            max-width: 300px;
+            text-align: center;
+        }
+
+        .submit-button:hover {
+            color: #000000;
+            background-color: #ffffff;
+            border-color: #000000;
+        }
+
+        .upload-progress {
+            width: 100%;
+            max-width: 300px;
+            height: 5px;
+            background-color: #eee;
+            margin-top: 15px;
+            position: relative;
+            display: none;
+        }
+
+        .upload-progress-bar {
+            height: 100%;
+            background-color: #000;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .upload-success {
+            color: #2a9d8f;
+            margin-top: 15px;
+            display: none;
+        }
+
+        /* Dark Mode Styling */
+        body.dark-mode {
+            background-color: #121212;
+            color: #f5f5f5;
+        }
+
+        body.dark-mode .nav-link {
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .nav-link:hover {
+            color: #ffffff;
+        }
+
+        body.dark-mode .custom-file-upload, 
+        body.dark-mode .submit-button {
+            background-color: #f5f5f5;
+            color: #121212;
+            border-color: #f5f5f5;
+        }
+
+        body.dark-mode .custom-file-upload:hover, 
+        body.dark-mode .submit-button:hover {
+            background-color: #121212;
+            color: #f5f5f5;
+            border-color: #f5f5f5;
+        }
+
+        body.dark-mode .file-name-display {
+            color: #cccccc;
+        }
+
+        body.dark-mode h1 {
+            color: #eeeeee;
+        }
+
+        body.dark-mode .upload-progress {
+            background-color: #333;
+        }
+
+        body.dark-mode .upload-progress-bar {
+            background-color: #f5f5f5;
+        }
+
+        body.dark-mode .upload-success {
+            color: #4ecdc4;
+        }
+
+        /* Media Queries for Responsiveness */
+        @media (max-width: 1200px) {
+            h1 {
+                font-size: 25vw;
+            }
+            .justified {
+                width: 100% !important;
+                max-width: 100%;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 0 20px;
+            }
+            h1 {
+                font-size: 30vw;
+                line-height: 0.9;
+            }
+            .navbar {
+                padding: 15px 20px;
+                justify-content: space-between;
+            }
+            p {
+                font-size: 1.1rem;
+            }
+            .justified {
+                text-align: left;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 35vw;
+            }
+            body {
+                padding: 0 15px;
+            }
+            .navbar {
+                padding: 12px 15px;
+            }
+            .nav-link {
+                font-size: 0.9rem;
+            }
+            p {
+                font-size: 1rem;
+                margin-bottom: 20px;
+            }
+            .justified {
+                width: 100% !important;
+            }
+            .upload-wrapper {
+                width: 100%;
+            }
+            .custom-file-upload, 
+            .submit-button {
+                width: 100%;
+                max-width: 100%;
+            }
+        }
+        
+        @media (max-width: 320px) {
+            h1 {
+                font-size: 40vw;
+            }
+            .navbar {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+            #mode-toggle {
+                margin-left: 0;
+                width: 100%;
+                order: 3;
+                margin-top: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Post</h1>
+    </header>
+    <div class="content">
+        <p class="justified" style="width: 100ch;">
+            This page allows you to upload files to the Webserv HTTP server. Choose your file, add an optional description, and submit it using the POST method. The server will process your request and store the uploaded file.
+        </p>
+
+        <div class="upload-section">
+            <form id="uploadForm" enctype="multipart/form-data">
+                <div class="upload-wrapper">
+                    <label class="custom-file-upload">
+                        Choose a file
+                        <input type="file" id="fileInput" name="fileToUpload" />
+                    </label>
+                    <div id="file-name" class="file-name-display">No file chosen</div>
+                    
+                    <label for="description" style="margin-top: 15px;">Description (optional):</label>
+                    <textarea id="description" name="description" rows="3" style="width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc;"></textarea>
+                    
+                    <button type="submit" class="submit-button">Upload File</button>
+                    
+                    <div class="upload-progress" id="progress-bar-container">
+                        <div class="upload-progress-bar" id="progress-bar"></div>
+                    </div>
+                    
+                    <div class="upload-success" id="upload-success">
+                        File uploaded successfully!
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <nav class="navbar">
+        <a href="/" class="nav-link">home</a>
+        <a href="/about" class="nav-link">about</a>
+        <a href="/post" class="nav-link active">post</a>
+        <button id="mode-toggle" class="nav-link" style="border: none; background: none; cursor: pointer; margin-left: auto;">Mode</button>
+    </nav>
+    
+    <script>
+        const input = document.getElementById('fileInput');
+        const fileNameDisplay = document.getElementById('file-name');
+        const modeToggle = document.getElementById('mode-toggle');
+        const body = document.body;
+        const form = document.getElementById('uploadForm');
+        const progressBarContainer = document.getElementById('progress-bar-container');
+        const progressBar = document.getElementById('progress-bar');
+        const uploadSuccess = document.getElementById('upload-success');
+    
+        // Mostra nome file scelto
+        input.addEventListener('change', () => {
+            if (input.files.length > 0) {
+                fileNameDisplay.textContent = `Chosen file: ${input.files[0].name}`;
+            } else {
+                fileNameDisplay.textContent = 'No file chosen';
+            }
+        });
+    
+        // Gestione del form
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const fileInput = document.getElementById('fileInput');
+            if (fileInput.files.length === 0) {
+                alert('Please select a file to upload');
+                return;
+            }
+            
+            // Simulazione upload
+            progressBarContainer.style.display = 'block';
+            
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 10;
+                progressBar.style.width = `${progress}%`;
+                
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        uploadSuccess.style.display = 'block';
+                    }, 300);
+                }
+            }, 200);
+            
+            // In produzione qui andrà la vera chiamata POST al server
+        });
+    
+        // Rileva preferenza sistema
+        const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+        let isDarkMode = prefersDarkScheme.matches;
+    
+        // Applica modalità iniziale
+        function setInitialMode() {
+            if (isDarkMode) {
+                body.classList.add('dark-mode');
+                modeToggle.textContent = 'Light Mode';
+            } else {
+                body.classList.remove('dark-mode');
+                modeToggle.textContent = 'Dark Mode';
+            }
+        }
+    
+        setInitialMode();
+    
+        // Transizione semplice e immediata
+        modeToggle.addEventListener('click', () => {
+            isDarkMode = !isDarkMode;
+            body.classList.toggle('dark-mode', isDarkMode);
+            modeToggle.textContent = isDarkMode ? 'Light Mode' : 'Dark Mode';
+        });
+    </script>
+</body>
+</html>
