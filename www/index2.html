@@ -79,10 +79,23 @@
             color: #3D3D3D;
         }
         .navbar {
-            padding: 0px 0 20px 0;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 20px 40px;
             display: flex;
             gap: 20px;
+            background-color: white;
+            transition: background-color 0.2s ease;
+            z-index: 1000;
             margin-top: auto;
+        }
+        body.dark-mode .navbar {
+            background-color: #121212;
+        }
+        .content {
+            padding-bottom: 60px;
         }
         .nav-link {
             text-decoration: none;
@@ -331,7 +344,7 @@
 </head>
 <body>
     <header>
-        <h1>Webserv</h1>
+        <h1>Web<em>serv</em></h1>
     </header>
     <div class="content">
       <p class="justified" style="width: 100ch;">
@@ -352,18 +365,18 @@
       
     </div>
     </div>
-    <p style="margin-bottom: px 0;">
+    <p style="margin-bottom: 80px;">
       <a class="link" href="https://github.com/amema42" target="_blank" rel="noreferrer">
-        <span class="link--top">Ani MEMA</span>
-        <span class="link--bottom">Ani MEMA</span>
+      <span class="link--top">Ani MEMA</span>
+      <span class="link--bottom">Ani MEMA</span>
       </a>,
       <a class="link" href="https://github.com/raviolotto" target="_blank" rel="noreferrer">
-        <span class="link--top">Jacopo CARDINAux</span>
-        <span class="link--bottom">Jacopo CARDINAux</span>
+      <span class="link--top">Jacopo CARDINAux</span>
+      <span class="link--bottom">Jacopo CARDINAux</span>
       </a>,
       <a class="link" href="https://github.com/ippatteo" target="_blank" rel="noreferrer">
-        <span class="link--top">Matteo CAMILLI</span>
-        <span class="link--bottom">Matteo CAMILLI</span>
+      <span class="link--top">Matteo CAMILLI</span>
+      <span class="link--bottom">Matteo CAMILLI</span>
       </a>
     </p>
     <nav class="navbar">
@@ -377,7 +390,6 @@
       const modeToggle = document.getElementById('mode-toggle');
       const body = document.body;
     
-      // Mostra nome file scelto
       input.addEventListener('change', () => {
         if (input.files.length > 0) {
           fileNameDisplay.textContent = `Chosen file: ${input.files[0].name}`;
@@ -386,11 +398,9 @@
         }
       });
     
-      // Rileva preferenza sistema
       const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
       let isDarkMode = prefersDarkScheme.matches;
     
-      // Applica modalità iniziale
       function setInitialMode() {
         if (isDarkMode) {
           body.classList.add('dark-mode');
@@ -403,7 +413,6 @@
     
       setInitialMode();
     
-      // Transizione semplice e immediata
       modeToggle.addEventListener('click', () => {
         isDarkMode = !isDarkMode;
         body.classList.toggle('dark-mode', isDarkMode);
