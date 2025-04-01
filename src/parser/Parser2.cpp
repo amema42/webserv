@@ -287,6 +287,21 @@ bool insertArgInListen(std::string& Word, int look_for, std::vector<int>& args, 
 	return false;
 }
 
+
+
+bool endsWithPython3(const std::string& str) 
+{
+    const std::string suffix = "python3";
+    
+    // Se la stringa è più corta del suffisso, non può terminare con esso
+    if (str.size() < suffix.size()) 
+        return false;
+    
+    // Confronta la parte finale della stringa con il suffisso
+    return str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0;
+}
+
+
 /*
 lo stream iss controlla per ogni linea tutte le parole.
 la funzione va per stati definiti in look_for:
@@ -500,8 +515,22 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
 					{
 						if (Word == "}") //se trova brackets controlla che ci siano i 3 obbligatori, se non li trova va in errore
 						{
+							//controllo cgi__________________________________________________________________________________________________cancellare se non funzia
+							if (servers.back().location.back().l_cgi_path.back() != "")
+							{
+								if ((endsWithPython3(servers.back().location.back().l_cgi_path.back()) && (servers.back().location.back().l_cgi_extension.back() == ".py")))
+								{
+									std::cout << "syntax error at line " << n_line << "gci location and extention unmatched\n";
+									look_for = ERROR;
+								}
+								else 
+									look_for = IN_SERVER;
+
+							}
+							else//controllo cgi__________________________________________________________________________________________________cancellare se non funzia
+								look_for = IN_SERVER; // 
 							//std::cout << "trovato '}'\n";
-							look_for = IN_SERVER;
+							
 							break;
 						}
                 		else if ((look_for = ParseWord(look_for, Word))) //cambia look for in base a cio che trova, se trova 0 è errore
