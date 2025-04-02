@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Webserv - Get</title>
+  <style>
+    /* Reset & Base Styles */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      background-color: white;
+      color: #3D3D3D;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 0 40px;
+      position: relative;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    
+    /* Layout & Structure */
+    header {
+      padding-top: 20px;
+    }
+    
+    .content {
+      margin-top: 20px;
+      position: relative;
+      flex-grow: 1;
+      width: 100%;
+      max-width: 1200px;
+      padding-bottom: 80px;
+    }
+    
+    .justified {
+      text-align: justify;
+      max-width: none;
+    }
+    
+    /* Typography */
+    h1 {
+      font-size: 18vw;
+      font-weight: 900;
+      line-height: 0.8;
+      width: 100%;
+      word-break: break-word;
+      overflow-wrap: break-word;
+      margin-bottom: 0;
+      transition: color 0.3s ease;
+    }
+    
+    p {
+      font-size: 1.25rem;
+      margin-bottom: 30px;
+      max-width: 800px;
+      transition: color 0.3s ease;
+      line-height: 1.5;
+    }
+    
+    .upper-text {
+      text-transform: uppercase;
+    }
+    
+    /* Navigation */
+    .navbar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 20px 40px;
+      display: flex;
+      gap: 20px;
+      background-color: white;
+      transition: background-color 0.3s ease;
+      z-index: 1000;
+      margin-top: auto;
+    }
+    
+    .nav-link {
+      text-decoration: none;
+      color: #1b1b1b;
+      font-size: 1rem;
+      transition: color 0.3s ease;
+      padding: 5px 10px;
+    }
+    
+    .nav-link:hover {
+      color: #3D3D3D;
+    }
+    
+    .nav-link.active {
+      text-decoration: underline;
+      text-decoration-color: #204e2a;
+      text-underline-offset: 5px;
+    }
+    
+    #mode-toggle {
+      border: none;
+      background: none;
+      cursor: pointer;
+      margin-left: auto;
+      padding: 5px 10px;
+      border-radius: 4px;
+      transition: all 0.3s ease;
+    }
+    
+    body:not(.dark-mode) #mode-toggle:hover {
+      background-color: rgba(0, 0, 0, 0.05);
+    }
+    
+    /* File Browser Section */
+    .file-browser-section {
+      margin-top: 30px;
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      max-width: 800px;
+    }
+    
+    .search-wrapper {
+      display: flex;
+      margin-bottom: 20px;
+      width: 100%;
+      max-width: 600px;
+    }
+    
+    .search-input {
+      flex-grow: 1;
+      padding: 12px 16px;
+      border: 1px solid #ccc;
+      border-radius: 4px 0 0 4px;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      font-size: 1rem;
+      transition: border-color 0.3s ease;
+    }
+    
+    .search-input:focus {
+      outline: none;
+      border-color: #204e2a;
+    }
+    
+    .search-button {
+      background-color: #000000;
+      border: 2px solid #000000;
+      color: #ffffff;
+      padding: 10px 24px;
+      border-radius: 0 4px 4px 0;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      user-select: none;
+    }
+    
+    .search-button:hover {
+      color: #000000;
+      background-color: #ffffff;
+      border-color: #000000;
+    }
+    
+    /* File List */
+    .file-list {
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 20px;
+      width: 100%;
+      max-width: 600px;
+    }
+    
+    .file-list-header {
+      display: flex;
+      background-color: #f5f5f5;
+      padding: 15px;
+      font-weight: 500;
+      border-bottom: 1px solid #ddd;
+      transition: background-color 0.3s ease;
+    }
+    
+    .file-list-item {
+      display: flex;
+      padding: 12px 15px;
+      align-items: center;
+      border-bottom: 1px solid #eee;
+      transition: background-color 0.3s ease;
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+    }
+    
+    .file-list-item:last-child {
+      border-bottom: none;
+    }
+    
+    .file-list-item:hover {
+      background-color: #f9f9f9;
+    }
+    
+    .file-icon {
+      margin-right: 12px;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .file-name {
+      flex-grow: 1;
+      font-size: 1rem;
+    }
+    
+    .file-size, .file-date {
+      font-size: 0.9rem;
+      color: #666;
+      transition: color 0.3s ease;
+      width: 100px;
+      text-align: right;
+    }
+    
+    .file-date {
+      width: 150px;
+    }
+    
+    .folder-path {
+      background-color: #f5f5f5;
+      padding: 12px 15px;
+      margin-bottom: 10px;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: background-color 0.3s ease;
+    }
+    
+    .path-segment {
+      cursor: pointer;
+      color: #204e2a;
+      transition: color 0.3s ease;
+    }
+    
+    .path-segment:hover {
+      text-decoration: underline;
+    }
+    
+    .path-separator {
+      margin: 0 4px;
+      color: #888;
+    }
+    
+    .go-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.9rem;
+      color: #204e2a;
+      cursor: pointer;
+      margin-bottom: 15px;
+      transition: all 0.3s ease;
+    }
+    
+    .go-back:hover {
+      text-decoration: underline;
+    }
+    
+    .file-preview {
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      margin-top: 20px;
+      background-color: #f9f9f9;
+      width: 100%;
+      max-width: 600px;
+      transition: background-color 0.3s ease;
+      display: none;
+    }
+    
+    .preview-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    
+    .preview-title {
+      font-weight: 500;
+      font-size: 1.1rem;
+    }
+    
+    .preview-actions {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .preview-button {
+      padding: 8px 12px;
+      background-color: #204e2a;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: all 0.3s ease;
+    }
+    
+    .preview-button:hover {
+      background-color: #183d21;
+    }
+    
+    .preview-close {
+      background-color: #ccc;
+    }
+    
+    .preview-close:hover {
+      background-color: #b3b3b3;
+    }
+    
+    .preview-content {
+      white-space: pre-wrap;
+      overflow-x: auto;
+      font-family: monospace;
+      padding: 15px;
+      background-color: white;
+      border: 1px solid #eee;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      transition: background-color 0.3s ease;
+    }
+    
+    .preview-image {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin: 0 auto;
+    }
+    
+    .no-results {
+      padding: 30px;
+      text-align: center;
+      font-size: 0.95rem;
+      color: #888;
+      font-style: italic;
+    }
+    
+    /* Dark Mode */
+    body.dark-mode {
+      background-color: #121212;
+      color: #f5f5f5;
+    }
+    
+    body.dark-mode h1 {
+      color: #eeeeee;
+    }
+    
+    body.dark-mode .navbar {
+      background-color: #121212;
+    }
+    
+    body.dark-mode .nav-link {
+      color: #e0e0e0;
+    }
+    
+    body.dark-mode .nav-link:hover {
+      color: #ffffff;
+    }
+    
+    body.dark-mode #mode-toggle:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    body.dark-mode .search-input {
+      background-color: #1e1e1e;
+      border-color: #333;
+      color: #e0e0e0;
+    }
+    
+    body.dark-mode .search-input:focus {
+      border-color: #4ecdc4;
+    }
+    
+    body.dark-mode .search-button {
+      background-color: #f5f5f5;
+      color: #121212;
+      border-color: #f5f5f5;
+    }
+    
+    body.dark-mode .search-button:hover {
+      background-color: #121212;
+      color: #f5f5f5;
+      border-color: #f5f5f5;
+    }
+    
+    body.dark-mode .file-list {
+      border-color: #333;
+    }
+    
+    body.dark-mode .file-list-header {
+      background-color: #1e1e1e;
+      border-color: #333;
+    }
+    
+    body.dark-mode .file-list-item {
+      border-color: #333;
+    }
+    
+    body.dark-mode .file-list-item:hover {
+      background-color: #1e1e1e;
+    }
+    
+    body.dark-mode .file-size,
+    body.dark-mode .file-date {
+      color: #aaa;
+    }
+    
+    body.dark-mode .folder-path {
+      background-color: #1e1e1e;
+    }
+    
+    body.dark-mode .path-segment {
+      color: #4ecdc4;
+    }
+    
+    body.dark-mode .file-preview {
+      background-color: #1e1e1e;
+      border-color: #333;
+    }
+    
+    body.dark-mode .preview-content {
+      background-color: #121212;
+      border-color: #333;
+    }
+    
+    body.dark-mode .preview-button {
+      background-color: #4ecdc4;
+      color: #121212;
+    }
+    
+    body.dark-mode .preview-button:hover {
+      background-color: #3dbdb4;
+    }
+    
+    body.dark-mode .preview-close {
+      background-color: #333;
+      color: #e0e0e0;
+    }
+    
+    body.dark-mode .preview-close:hover {
+      background-color: #444;
+    }
+    
+    body.dark-mode .go-back {
+      color: #4ecdc4;
+    }
+    
+    /* Responsive Media Queries */
+    @media (max-width: 1200px) {
+      h1 {
+        font-size: 20vw;
+      }
+      .justified {
+        width: 100%;
+        max-width: 100%;
+      }
+      .content {
+        max-width: 100%;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      body {
+        padding: 0 25px;
+      }
+      h1 {
+        font-size: 25vw;
+        line-height: 0.9;
+      }
+      .navbar {
+        padding: 15px 25px;
+        justify-content: space-between;
+      }
+      p {
+        font-size: 1.1rem;
+        line-height: 1.4;
+      }
+      .justified {
+        text-align: left;
+      }
+      .search-wrapper,
+      .file-list,
+      .file-preview {
+        max-width: 100%;
+      }
+      .file-date {
+        display: none;
+      }
+      .file-size {
+        width: 70px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 30vw;
+      }
+      body {
+        padding: 0 20px;
+      }
+      .navbar {
+        padding: 15px 20px;
+      }
+      .nav-link {
+        font-size: 0.9rem;
+      }
+      p {
+        font-size: 1rem;
+        margin-bottom: 20px;
+        line-height: 1.4;
+      }
+      .justified {
+        width: 100%;
+      }
+      .search-input {
+        font-size: 0.9rem;
+      }
+      .search-button {
+        padding: 10px 16px;
+      }
+      .file-size {
+        width: 60px;
+      }
+    }
+    
+    @media (max-width: 360px) {
+      h1 {
+        font-size: 35vw;
+      }
+      .navbar {
+        flex-wrap: wrap;
+        gap: 15px;
+        padding: 12px 20px;
+      }
+      #mode-toggle {
+        margin-left: 0;
+        order: 3;
+        width: 100%;
+        padding: 8px 0;
+        background-color: rgba(0, 0, 0, 0.05);
+      }
+      body.dark-mode #mode-toggle {
+        background-color: rgba(255, 255, 255, 0.1);
+      }
+      .search-wrapper {
+        flex-direction: column;
+      }
+      .search-input {
+        border-radius: 4px;
+        margin-bottom: 10px;
+      }
+      .search-button {
+        border-radius: 4px;
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Get</h1>
+  </header>
+  <div class="content">
+    <p class="justified">
+      This page allows you to browse and retrieve files from the Webserv HTTP server. Use the search function to find specific files, navigate through directories, and preview or download content using the GET method.
+    </p>
+
+    <div class="file-browser-section">
+      <form id="searchForm">
+        <div class="search-wrapper">
+          <input type="text" id="searchInput" class="search-input" placeholder="Search for files..." />
+          <button type="submit" class="search-button">Search</button>
+        </div>
+      </form>
+      
+      <div class="folder-path" id="currentPath">
+        <span class="path-segment" data-path="/">root</span>
+        <span class="path-separator">/</span>
+        <span class="path-segment" data-path="/public">public</span>
+      </div>
+      
+      <div class="file-list">
+        <div class="file-list-header">
+          <div class="file-name">Name</div>
+          <div class="file-size">Size</div>
+          <div class="file-date">Modified</div>
+        </div>
+        
+        <a href="#" class="file-list-item" data-type="directory" data-path="/public/images">
+          <div class="file-icon">📁</div>
+          <div class="file-name">images</div>
+          <div class="file-size">-</div>
+          <div class="file-date">Apr 1, 2025</div>
+        </a>
+        
+        <a href="#" class="file-list-item" data-type="directory" data-path="/public/css">
+          <div class="file-icon">📁</div>
+          <div class="file-name">css</div>
+          <div class="file-size">-</div>
+          <div class="file-date">Apr 1, 2025</div>
+        </a>
+        
+        <a href="#" class="file-list-item" data-type="directory" data-path="/public/js">
+          <div class="file-icon">📁</div>
+          <div class="file-name">js</div>
+          <div class="file-size">-</div>
+          <div class="file-date">Apr 1, 2025</div>
+        </a>
+        
+        <a href="#" class="file-list-item" data-type="file" data-path="/public/index.html">
+          <div class="file-icon">📄</div>
+          <div class="file-name">index.html</div>
+          <div class="file-size">8.4 KB</div>
+          <div class="file-date">Apr 1, 2025</div>
+        </a>
+        
+        <a href="#" class="file-list-item" data-type="file" data-path="/public/about.html">
+          <div class="file-icon">📄</div>
+          <div class="file-name">about.html</div>
+          <div class="file-size">5.2 KB</div>
+          <div class="file-date">Apr 1, 2025</div>
+        </a>
+        
+        <a href="#" class="file-list-item" data-type="file" data-path="/public/favicon.ico">
+          <div class="file-icon">🖼️</div>
+          <div class="file-name">favicon.ico</div>
+          <div class="file-size">4.8 KB</div>
+          <div class="file-date">Apr 1, 2025</div>
+        </a>
+      </div>
+      
+      <div class="file-preview" id="filePreview">
+        <span class="go-back" id="goBack">← Back to file list</span>
+        
+        <div class="preview-header">
+          <div class="preview-title" id="previewTitle">index.html</div>
+          <div class="preview-actions">
+            <button class="preview-button" id="downloadButton">Download</button>
+            <button class="preview-button preview-close" id="closePreview">Close</button>
+          </div>
+        </div>
+        
+        <div class="preview-content" id="previewContent">
+          <!-- Content will be loaded dynamically -->
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <nav class="navbar">
+    <a href="/" class="nav-link">home</a>
+    <a href="/about" class="nav-link">about</a>
+    <a href="/get" class="nav-link active">get</a>
+    <a href="/post" class="nav-link">post</a>
+    <a href="/delete" class="nav-link">delete</a>
+    <button id="mode-toggle" class="nav-link">Mode</button>
+  </nav>
+  
+  <script>
+    const modeToggle = document.getElementById('mode-toggle');
+    const body = document.body;
+    const searchForm = document.getElementById('searchForm');
+    const fileListItems = document.querySelectorAll('.file-list-item');
+    const filePreview = document.getElementById('filePreview');
+    const previewTitle = document.getElementById('previewTitle');
+    const previewContent = document.getElementById('previewContent');
+    const closePreview = document.getElementById('closePreview');
+    const goBack = document.getElementById('goBack');
+    const downloadButton = document.getElementById('downloadButton');
+    const pathSegments = document.querySelectorAll('.path-segment');
+    
+    // Detect system preference
+    const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+    let isDarkMode = prefersDarkScheme.matches;
+    
+    // Apply initial mode
+    function setInitialMode() {
+      if (isDarkMode) {
+        body.classList.add('dark-mode');
+        modeToggle.textContent = 'Light Mode';
+      } else {
+        body.classList.remove('dark-mode');
+        modeToggle.textContent = 'Dark Mode';
+      }
+    }
+    
+    setInitialMode();
+    
+    // Toggle dark/light mode
+    modeToggle.addEventListener('click', () => {
+      isDarkMode = !isDarkMode;
+      body.classList.toggle('dark-mode', isDarkMode);
+      modeToggle.textContent = isDarkMode ? 'Light Mode' : 'Dark Mode';
+    });
+    
+    // Function to handle file clicks (for all file elements)
+    function handleFileClick(e) {
+      e.preventDefault();
+      
+      const item = e.currentTarget;
+      const type = item.getAttribute('data-type');
+      const path = item.getAttribute('data-path');
+      const name = item.querySelector('.file-name').textContent;
+      
+      if (type === 'directory') {
+        console.log(`Navigate to directory: ${path}`);
+        // Simulate folder navigation
+        if (path.includes('images')) {
+          simulateImageFolder();
+        } else if (path.includes('css')) {
+          simulateCssFolder();
+        } else if (path.includes('js')) {
+          simulateJsFolder();
+        }
+      } else {
+        previewTitle.textContent = name;
+        
+        // Simulate content based on extension
+        if (name.endsWith('.html')) {
+          previewContent.innerHTML = `&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+  &lt;title&gt;Webserv Demo&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Welcome to Webserv&lt;/h1&gt;
+  &lt;p&gt;This is a sample HTML file served by our HTTP server.&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;`;
+        } else if (name.endsWith('.ico')) {
+          previewContent.innerHTML = '<div style="text-align: center"><img src="/api/placeholder/200/200" alt="favicon preview" class="preview-image" /></div>';
+        } else {
+          previewContent.textContent = `This is the content of ${name}. In a real implementation, this would show the actual file content fetched from the server.`;
+        }
+        
+        filePreview.style.display = 'block';
+      }
+    }
+    
+    // Handle file list item clicks
+    fileListItems.forEach(item => {
+      item.addEventListener('click', handleFileClick);
+    });
+    
+    // Handle search form submission
+    searchForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const searchInput = document.getElementById('searchInput');
+      const searchTerm = searchInput.value.trim().toLowerCase();
+      
+      if (searchTerm === '') return;
+      
+      // Clear current file list
+      const fileList = document.querySelector('.file-list');
+      const fileListHeader = document.querySelector('.file-list-header');
+      
+      while (fileList.children.length > 1) {
+        fileList.removeChild(fileList.lastChild);
+      }
+      
+      // Simulate search results
+      let hasResults = false;
+      
+      if ('index'.includes(searchTerm) || 'html'.includes(searchTerm)) {
+        fileList.appendChild(createFileItem('index.html', '8.4 KB', 'Apr 1, 2025', 'file'));
+        hasResults = true;
+      }
+      
+      if ('about'.includes(searchTerm) || 'html'.includes(searchTerm)) {
+        fileList.appendChild(createFileItem('about.html', '5.2 KB', 'Apr 1, 2025', 'file'));
+        hasResults = true;
+      }
+      
+      if ('css'.includes(searchTerm)) {
+        fileList.appendChild(createFileItem('css', '-', 'Apr 1, 2025', 'directory'));
+        hasResults = true;
+      }
+      
+      if ('js'.includes(searchTerm)) {
+        fileList.appendChild(createFileItem('js', '-', 'Apr 1, 2025', 'directory'));
+        hasResults = true;
+      }
+      
+      if ('favicon'.includes(searchTerm) || 'ico'.includes(searchTerm)) {
+        fileList.appendChild(createFileItem('favicon.ico', '4.8 KB', 'Apr 1, 2025', 'file'));
+        hasResults = true;
+      }
+      
+      if ('image'.includes(searchTerm) || 'images'.includes(searchTerm)) {
+        fileList.appendChild(createFileItem('images', '-', 'Apr 1, 2025', 'directory'));
+        hasResults = true;
+      }
+      
+      if (!hasResults) {
+        const noResults = document.createElement('div');
+        noResults.className = 'no-results';
+        noResults.textContent = `No files found matching "${searchTerm}"`;
+        fileList.appendChild(noResults);
+      }
+      
+      // Update event listeners for new items
+      document.querySelectorAll('.file-list-item').forEach(item => {
+        item.addEventListener('click', handleFileClick);
+      });
+    });
+    
+    // Helper function to create file list items
+    function createFileItem(name, size, date, type) {
+      const item = document.createElement('a');
+      item.className = 'file-list-item';
+      item.href = '#';
+      item.setAttribute('data-type', type);
+      item.setAttribute('data-path', `/public/${name}`);
+      
+      const icon = document.createElement('div');
+      icon.className = 'file-icon';
+      icon.textContent = type === 'directory' ? '📁' : '📄';
+      
+      const fileName = document.createElement('div');
+      fileName.className = 'file-name';
+      fileName.textContent = name;
+      
+      const fileSize = document.createElement('div');
+      fileSize.className = 'file-size';
+      fileSize.textContent = size;
+      
+      const fileDate = document.createElement('div');
+      fileDate.className = 'file-date';
+      fileDate.textContent = date;
+      
+      item.appendChild(icon);
+      item.appendChild(fileName);
+      item.appendChild(fileSize);
+      item.appendChild(fileDate);
+      
+      return item;
+    }
+    
+    // Handle file preview close
+    closePreview.addEventListener('click', () => {
+      filePreview.style.display = 'none';
+    });
+    
+    goBack.addEventListener('click', () => {
+      filePreview.style.display = 'none';
+    });
+    
+    // Handle download button
+    downloadButton.addEventListener('click', () => {
+      const fileName = previewTitle.textContent;
+      alert(`Downloading ${fileName}... In a real implementation, this would trigger a download.`);
+    });
+    
+    // Path navigation
+    pathSegments.forEach(segment => {
+      segment.addEventListener('click', () => {
+        const path = segment.getAttribute('data-path');
+        console.log(`Navigate to path: ${path}`);
+        // In a real app, this would navigate to the path
+      });
+    // Update handleFileClick function with complete file type handling
+    function handleFileClick(e) {
+      e.preventDefault();
+      
+      const item = e.currentTarget;
+      const type = item.getAttribute('data-type');
+      const path = item.getAttribute('data-path');
+      const name = item.querySelector('.file-name').textContent;
+      
+      if (type === 'directory') {
+        console.log(`Navigate to directory: ${path}`);
+        // Simulate folder navigation
+        if (path.includes('images')) {
+          simulateImageFolder();
+        } else if (path.includes('css')) {
+          simulateCssFolder();
+        } else if (path.includes('js')) {
+          simulateJsFolder();
+        }
+      } else {
+        previewTitle.textContent = name;
+        
+        // Simulate content based on extension
+        if (name.endsWith('.html')) {
+          previewContent.innerHTML = `&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+  &lt;title&gt;Webserv Demo&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Welcome to Webserv&lt;/h1&gt;
+  &lt;p&gt;This is a sample HTML file served by our HTTP server.&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;`;
+        } else if (name.endsWith('.ico') || name.endsWith('.jpg') || name.endsWith('.png')) {
+          previewContent.innerHTML = '<div style="text-align: center"><img src="/api/placeholder/300/200" alt="image preview" class="preview-image" /></div>';
+        } else if (name.endsWith('.css')) {
+          previewContent.textContent = `body {
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  background-color: white;
+  color: #3D3D3D;
+}
+
+h1 {
+  font-size: 2rem;
+  color: #204e2a;
+}`;
+        } else if (name.endsWith('.js')) {
+          previewContent.textContent = `// Sample JavaScript file
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('Document ready!');
+  
+  const button = document.querySelector('.btn');
+  if (button) {
+    button.addEventListener('click', function() {
+      console.log('Button clicked!');
+    });
+  }
+});`;
+        } else {
+          previewContent.textContent = `This is the content of ${name}. In a real implementation, this would show the actual file content fetched from the server.`;
+        }
+
+        filePreview.style.display = 'block';
+      }
+    }
+      });
+    
+    // Simulate folder navigation
+    function simulateImageFolder() {
+      const fileList = document.querySelector('.file-list');
+      
+// Clear current file list except header
+while (fileList.children.length > 1) {
+  fileList.removeChild(fileList.lastChild);
+}
+      
+      // Update path display
+      document.getElementById('currentPath').innerHTML = `
+<span class="path-segment" data-path="/">root</span>
+<span class="path-separator">/</span>
+<span class="path-segment" data-path="/public">public</span>
+<span class="path-separator">/</span>
+<span class="path-segment" data-path="/public/images">images</span>
+      `;
+      
+      // Add image files
+      fileList.appendChild(createFileItem('logo.png', '24.5 KB', 'Apr 1, 2025', 'file'));
+      fileList.appendChild(createFileItem('banner.jpg', '128.3 KB', 'Apr 1, 2025', 'file'));
+      fileList.appendChild(createFileItem('background.png', '256.7 KB', 'Apr 1, 2025', 'file'));
+      
+// Update event listeners
+document.querySelectorAll('.file-list-item').forEach(item => {
+  item.addEventListener('click', handleFileClick);
+});
+    }
+    
+    function simulateCssFolder() {
+      const fileList = document.querySelector('.file-list');
+      
+      // Clear current file list except header
+      while (fileList.children.length > 1) {
+fileList.removeChild(fileList.lastChild);
+      }
+      
+      // Update path display
+      document.getElementById('currentPath').innerHTML = `
+<span class="path-segment" data-path="/">root</span>
+<span class="path-separator">/</span>
+<span class="path-segment" data-path="/public">public</span>
+<span class="path-separator">/</span>
+<span class="path-segment" data-path="/public/css">css</span>
+      `;
+      
+      // Add css files
+      fileList.appendChild(createFileItem('style.css', '15.2 KB', 'Apr 1, 2025', 'file'));
+      fileList.appendChild(createFileItem('reset.css', '2.3 KB', 'Apr 1, 2025', 'file'));
+      
+      // Update event listeners
+      document.querySelectorAll('.file-list-item').forEach(item => {
+item.addEventListener('click', handleFileClick);
+      });
+    }
+    
+    function simulateJsFolder() {
+      const fileList = document.querySelector('.file-list');
+      
+      // Clear current file list except header
+      while (fileList.children.length > 1) {
+fileList.removeChild(fileList.lastChild);
+      }
+      
+      // Update path display
+      document.getElementById('currentPath').innerHTML = `
+<span class="path-segment" data-path="/">root</span>
+<span class="path-separator">/</span>
+<span class="path-segment" data-path="/public">public</span>
+<span class="path-separator">/</span>
+<span class="path-segment" data-path="/public/js">js</span>
+      `;
+      
+      // Add js files
+      fileList.appendChild(createFileItem('main.js', '8.5 KB', 'Apr 1, 2025', 'file'));
+      fileList.appendChild(createFileItem('utils.js', '3.7 KB', 'Apr 1, 2025', 'file'));
+      
+      // Update event listeners
+      document.querySelectorAll('.file-list-item').forEach(item => {
+item.addEventListener('click', handleFileClick);
+      });
+    }
+  </script>
+</body>
+</html>
