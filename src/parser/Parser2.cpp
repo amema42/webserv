@@ -70,10 +70,6 @@ int ParseWord(int look_for, std::string Word)
 		{
             return L_UPLOAD_STORE_ARG;
 		}
-        if (Word == "client_max_body_size")
-		{
-            return L_CLIENT_MAX_BODY_SIZE;
-		}
     }
     return ERROR;//non ha trovato la parola che si aspettava
 }
@@ -385,6 +381,9 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
 								<< ": watch out for '" << Word
 								<< "' closed brackets without 'listen', 'server_name' or 'root' field\n";
 							}
+							if (servers.back().client_max_body_size.size() == 0)
+								servers.back().client_max_body_size.push_back(1048576);
+
 						}
                 		else if ((look_for = ParseWord(look_for, Word))) //cambia look for in base a cio che trova, se trova 0 è errore
                 		{
@@ -451,7 +450,10 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
 						break;
 					}
 					case ERROR_PAGE_ARG:
-					{	std::string errorCode = Word;
+					{	
+						//controlla se gli errori sono giusti
+						//che non ci siano ripetizioni dello stesso errore
+						std::string errorCode = Word;
     					std::string errorPage;
    						if (!(iss >> errorPage))
 						{
@@ -474,7 +476,6 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
 					}
 					case CLIENT_MAX_BODY_SIZE:
 					{
-						//deve controllare e convertire m k etc
 						if (insertArgInMax(Word, look_for, servers.back().client_max_body_size,  n_line))
 						{
 							if (endsWithSemicolon(Word))
@@ -600,17 +601,6 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
 					case L_UPLOAD_STORE_ARG:
 					{
 						if (insertArgInField(Word, look_for, servers.back().location.back().l_upload_store, n_line))
-						{
-							if (endsWithSemicolon(Word))
-								look_for = IN_LOCATION;
-						}
-						else
-							look_for = ERROR;
-						break;
-					}
-					case L_CLIENT_MAX_BODY_SIZE:
-					{
-						if (insertArgInMax(Word, look_for, servers.back().location.back().l_client_max_body_size, n_line))
 						{
 							if (endsWithSemicolon(Word))
 								look_for = IN_LOCATION;
