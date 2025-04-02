@@ -15,6 +15,7 @@ int main(int ac, char **av){
 	Config config;
 	config.servers = &servers;
 	//creare funzione di stampa;
+	//std::cout << servers[0].l_cgi_extension.back() << "\n";
 	for (size_t i = 0; i < config.servers->size(); i++) {
 		std::cout << "Server " << i+1 << ":\n";
 		std::cout << "  |-Listen: " << mcamilli((*config.servers)[i].listen) << "\n";
@@ -22,7 +23,10 @@ int main(int ac, char **av){
 		std::cout << "  |-Client Max Body Size: " << mcamilli((*config.servers)[i].client_max_body_size) << "\n";
 		std::cout << "  |-Server root: " << mcamilli((*config.servers)[i].root) << std::endl;
 		std::cout << "  |-Server index: " << mcamilli((*config.servers)[i].index) << std::endl;
+		std::cout << "  |-Server cgi_path: " << mcamilli((*config.servers)[i].l_cgi_path) << std::endl;
+		std::cout << "  |-Server cgi_ext: " << mcamilli((*config.servers)[i].l_cgi_extension) << std::endl;
 		std::cout << "  |-Numero di location: "<< (*config.servers)[i].location.size() << std::endl;
+		std::cout << "  |-Server index: " << mcamilli((*config.servers)[i].index) << std::endl;
 		std::cout << "  |-Error pages:" << std::endl;
 		printMap((*config.servers)[i].error_page, "   |-error: ", "page: ");
 		for (size_t j = 0; j < (*config.servers)[i].location.size(); j++){

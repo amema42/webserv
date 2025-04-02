@@ -24,7 +24,7 @@ Server::~Server()
     return;
 }
 
-Server::Server(const Server &inst) : type(inst.type), numbers(inst.numbers), listen(inst.listen), server_name(inst.server_name), root(inst.root), error_page(inst.error_page), client_max_body_size(inst.client_max_body_size), index(inst.index), location(inst.location)
+Server::Server(const Server &inst) : type(inst.type), numbers(inst.numbers), listen(inst.listen), server_name(inst.server_name), root(inst.root), error_page(inst.error_page), client_max_body_size(inst.client_max_body_size), index(inst.index), location(inst.location),  l_cgi_path(inst.l_cgi_path), l_cgi_extension(inst.l_cgi_extension)
 {
     std::cout << "Server copy constructor" << std::endl;
     return;
@@ -42,6 +42,8 @@ Server &Server::operator=(const Server &inst)
         client_max_body_size = inst.client_max_body_size;
         index = inst.index;
         location = inst.location;
+		l_cgi_extension = inst.l_cgi_extension;
+		l_cgi_path = inst.l_cgi_path;
     }
     return *this;
 }
@@ -62,59 +64,8 @@ bool Server::setNumberToZero(int number)
     return false;
 }
 
-// Implementazione dei setter e getter per i vettori
-
-void Server::addToServerName(const std::string& value) {
-    server_name.push_back(value);
-}
-
-std::vector<std::string> Server::getServerName() const {
-    return server_name;
-}
-
-size_t Server::getServerNameSize() const {
-    return server_name.size();
-}
-
-void Server::addToRoot(const std::string& value) {
-    root.push_back(value);
-}
-
-std::vector<std::string> Server::getRoot() const {
-    return root;
-}
-
-size_t Server::getRootSize() const {
-    return root.size();
-}
-
-
-void Server::addToIndex(const std::string& value) {
-    index.push_back(value);
-}
-
-std::vector<std::string> Server::getIndex() const {
-    return index;
-}
-
-size_t Server::getIndexSize() const {
-    return index.size();
-}
-
-// Implementazione dei setter e getter per il vettore location
-void Server::addLocation(const Location& loc) {
-    location.push_back(loc);
-}
-
-std::vector<Location>& Server::getLocation() {
-    return location;
-}
-
-const std::vector<Location>& Server::getLocation() const {
-    return location;
-}
-
-std::string Server::getErrorPage(std::string value){
+std::string Server::getErrorPage(std::string value)
+{
 
     std::map<std::string, std::string>::iterator it =  error_page.find(value);
     if(it != error_page.end())

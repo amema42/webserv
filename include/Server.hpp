@@ -21,6 +21,8 @@ class Server
         std::vector<size_t> client_max_body_size;
         std::vector<std::string> index;
         std::vector<Location> location;
+		std::vector<std::string> l_cgi_path;
+        std::vector<std::string> l_cgi_extension;
 
         ~Server(); //def dest
         Server(); //def cost
@@ -29,27 +31,7 @@ class Server
         bool setNumberToZero(int number);
 
         // Setter e getter per i vettor
-        void addToServerName(const std::string& value);
-        std::vector<std::string> getServerName() const;
-        size_t getServerNameSize() const;
-
-        void addToRoot(const std::string& value);
-        std::vector<std::string> getRoot() const;
-        size_t getRootSize() const;
-
-        void addToErrorPage(const std::vector<std::string>& value);
-        size_t getErrorPageSize() const;
-
-
-        void addToIndex(const std::string& value);
-        std::vector<std::string> getIndex() const;
-        size_t getIndexSize() const;
-
-        // Setter e getter per il vettore location
-        void addLocation(const Location& loc);
-        std::vector<Location>& getLocation();
-        const std::vector<Location>& getLocation() const;
-        std::string getErrorPage(std::string value);
+    	std::string getErrorPage(std::string value);
 };
 
 #endif
