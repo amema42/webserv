@@ -24,7 +24,7 @@ Server::~Server()
     return;
 }
 
-Server::Server(const Server &inst) : type(inst.type), numbers(inst.numbers), listen(inst.listen), server_name(inst.server_name), root(inst.root), error_page(inst.error_page), client_max_body_size(inst.client_max_body_size), index(inst.index), location(inst.location)
+Server::Server(const Server &inst) : type(inst.type), numbers(inst.numbers), listen(inst.listen), server_name(inst.server_name), root(inst.root), error_page(inst.error_page), client_max_body_size(inst.client_max_body_size), index(inst.index), location(inst.location),  l_cgi_path(inst.l_cgi_path), l_cgi_extension(inst.l_cgi_extension)
 {
     std::cout << "Server copy constructor" << std::endl;
     return;
@@ -43,6 +43,8 @@ Server &Server::operator=(const Server &inst)
         client_max_body_size = inst.client_max_body_size;
         index = inst.index;
         location = inst.location;
+		l_cgi_extension = inst.l_cgi_extension;
+		l_cgi_path = inst.l_cgi_path;
     }
     return *this;
 }
@@ -61,4 +63,13 @@ bool Server::setNumberToZero(int number)
         return true;
     }
     return false;
+}
+
+std::string Server::getErrorPage(std::string value)
+{
+
+    std::map<std::string, std::string>::iterator it =  error_page.find(value);
+    if(it != error_page.end())
+        return (it->second);
+    throw std::runtime_error("no errr page for code: " + value);
 }

@@ -6,7 +6,7 @@
 /*   By: jacopo <jacopo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/19 15:06:40 by jacopo            #+#    #+#             */
-/*   Updated: 2025/03/25 14:56:17 by jacopo           ###   ########.fr       */
+/*   Updated: 2025/04/01 18:49:34 by jacopo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,13 +24,14 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <ctime>
 #include <string>
 #include <algorithm>
 #include <vector>
 #include <string>
 #include <map>
-
-
+#include <cstdlib>
+#include <sys/stat.h>
 #include "CGIHandler.hpp"
 #include "./Server.hpp" 
 #include "./Location.hpp" 
@@ -42,6 +43,7 @@
 //#include "Parser.hpp" //parser di ani
 #include "Tokenizer.hpp"
 
+#define SIZE_MAX 18446744073709551615UL
 #define ERROR 0
 #define SERVER 1
 #define OPEN_S_BRACKET 7
@@ -78,7 +80,9 @@ std::string mcamilli(const std::vector<T>& value){
 	return result.str();
 }
 
-void getServerByHost(const HTTPRequest& request, const Config & config);
-
+Server& getServerByHost(const HTTPRequest& request, const Config & config);
+void printMap(std::map<std::string, std::string>& map, std::string first, std::string second);
+std::string getHeaderValue(const std::string toFind, const HTTPRequest& request);
+std::string CreateFileName(const HTTPRequest& request);
 
 #endif // WEBSERV_hpp

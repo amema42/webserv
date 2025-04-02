@@ -16,9 +16,6 @@
 #include <poll.h>
 #include <cerrno>
 #include <algorithm>
-
-
-// #including libraries /headers for socket programming
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -26,7 +23,6 @@
 #include <unistd.h>
 
 HTTPServer::HTTPServer(const Config &config) : _config(config) {
-    // Init degli socket in base alla configurazione
     initSockets();
 }
 
@@ -81,14 +77,14 @@ void HTTPServer::initSockets() {
 
 void HTTPServer::handleGetRequest(const HTTPRequest& request, HTTPResponse& response) {
     std::stringstream filepath;
-    getServerByHost(request, _config);
+    Server& server =  getServerByHost(request, _config);
     if(request.uri.size() == 1)
-        filepath << (*_config.servers)[0].root[0] << request.uri  << (*_config.servers)[0].index[0];
+        filepath << server.root[0] << request.uri  << server.index[0];
     else
-        filepath << (*_config.servers)[0].root[0] << request.uri << "/" << (*_config.servers)[0].index[0];
+        filepath << server.root[0] << request.uri << "/" << server.index[0];//sistemare per sapere la location
     std::cout << "\t\tla path per il file da trovare" << filepath.str() << std::endl;
     try {
-        // std::string contentType = getMimeType(filePath); // Implementa mappa MIME
+        // std::string contentType = getMimeType(filePath); // Implementa mappa MIME vogliamo/dobbiamo farlo??
         std::string content = readFile(filepath.str());
         response.setStatus(200, "OK");
         response.body = content;
@@ -96,10 +92,61 @@ void HTTPServer::handleGetRequest(const HTTPRequest& request, HTTPResponse& resp
     catch (std::exception& e){
         std::cout << e.what() << std::endl;
         response.setStatus(404, "Not Found");
+        try{
+            std::string errorPath = server.getErrorPage("404");
+            std::string errorContent = readFile(errorPath);
+            response.body = errorContent;
+        }
+        catch(std::exception& e){
+            std::cout << e.what() <<std::endl;
+            response.body = "<html><body><h1>File Not Found</h1><p>default error page a specific one are not provided in config file</p></body></html>";
+        }
         return;
     }
     return;
+}
+
+void HTTPServer::handlePostRequest(const HTTPRequest& request, HTTPResponse& response){
     
+    Server& server =  getServerByHost(request, _config);
+    size_t i = std::strtol((getHeaderValue("Content-Length", request)).c_str(), NULL, 10);
+    // i <= server.max_body_size; controllo dimensioni!!
+    
+    std::string fileName = CreateFileName(request);
+    std::string uploadDir = server.root[0] + "/uploads/";
+    struct stat st;
+    if (stat(uploadDir.c_str(), &st) == -1) {
+        if (mkdir(uploadDir.c_str(), 0755) == -1) {
+            response.setStatus(500, "Internal Server Error");
+            try{
+                std::string errorPath = server.getErrorPage("500");
+                std::string errorContent = readFile(errorPath);
+                response.body = errorContent;
+            }
+            catch(std::exception& e){
+                std::cout << e.what() <<std::endl;
+                response.body = "<html><body><h1>File Not Found</h1><p>default error page a specific one are not provided in config file</p></body></html>";
+            }
+            return;
+        }
+    }
+    std::string fullpath = uploadDir + fileName;
+    std::cout << fullpath << std::endl;
+    //infos
+    try {
+        std::ofstream outFile(fullpath.c_str(), std::ios::binary);
+        outFile.write(request.body.data(), request.body.size());
+        
+        response.setStatus(201, "Created");
+        response.setHeader("Location", "/uploads/" + fileName);
+    }
+    catch (...) {
+        response.setStatus(500, "Internal Server Error");
+        response.body = "<html><body><h1>File upload failed</h1></body></html>";
+    }
+    std::cout << "server max body size: " << server.client_max_body_size[0]<< i << std::endl;
+    response.body = "<html><body><h1>Ciao, Mondo dal post!</h1></body></html>";
+    //crateFile
 }
 
 void HTTPServer::handleClientRequest(ClientConnection *clientConn, const std::string &rawRequest) {
@@ -115,6 +162,7 @@ void HTTPServer::handleClientRequest(ClientConnection *clientConn, const std::st
         response.setStatus(200, "OK");
     
     //gestione dei varii casi
+    //da gestire come nel get per i path della cgi
     if (request.uri.find("cgi-bin") != std::string::npos){
         std::cout << "handle cgi request" << std::endl;
         CGIHandler cgi(request.uri);
@@ -133,18 +181,15 @@ void HTTPServer::handleClientRequest(ClientConnection *clientConn, const std::st
     }
     else if (request.method == "POST"){
         std::cout<< "handle POST request" << std::endl;
-        //handlepost();
-        response.body = "<html><body><h1>Ciao, Mondo dal post!</h1></body></html>";
+        handlePostRequest(request, response);
     }
     else {
         std::cout << "handle DELETE request" << std::endl;
         response.body = "<html><body><h1>Ciao, Mondo!</h1></body></html>";
     }
-    response.setHeader("Content-Type", "text/html");
-    // response example: pagina HTML statica
-    // bisogna fornire la pagina richiesta 
-    
-    // set the **Content-Length** (C++98 usa std::ostringstream per la conversione)
+
+    response.setHeader("Content-Type", "text/html");//setteare l'header in base alla risposta da dare
+
     std::ostringstream oss;
     oss << response.body.size();
     response.setHeader("Content-Length", oss.str());
@@ -191,7 +236,7 @@ void HTTPServer::eventLoop() {
     // 1. Costruire una struttura (ad esempio std::vector<pollfd>) per gestire eventi di lettura e scrittura.
 
     // Ad es.:
-
+    bool loop = true;
     std::vector<pollfd> pollfds;
     // Aggiungi i socket di ascolto a pollfds
     for (size_t i = 0; i < _listenSockets.size(); ++i) {
@@ -204,7 +249,7 @@ void HTTPServer::eventLoop() {
     
     std::cout << "start event loop..." << std::endl;
 
-    while (true)
+    while (loop)
     {
         int ret = poll(&pollfds[0], pollfds.size(), -1);
         if (ret < 0)

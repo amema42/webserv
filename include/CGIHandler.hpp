@@ -21,6 +21,7 @@ class CGIHandler
     
     class CGIerror: public std::exception {
         public:
+            virtual ~CGIerror() throw(){};
             std::string _error;
             CGIerror(std::string error){
                 _error = error;

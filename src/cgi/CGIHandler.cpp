@@ -16,7 +16,7 @@ CGIHandler::~CGIHandler(){}
 
 std::string CGIHandler::executeScript(const std::string& method, const std::string& body) {
     int stdoutPipe[2], stdinPipe[2];
-    std::ifstream file (_cgipath);
+    std::ifstream file(_cgipath.c_str());
     if (!file.is_open())
         throw CGIHandler::CGIerror("unable to find a cgi script");
 
@@ -28,6 +28,9 @@ std::string CGIHandler::executeScript(const std::string& method, const std::stri
         throw CGIHandler::CGIerror("fork process error");
 
     else if (pid == 0) {
+        std::stringstream number;
+        number << body.size();
+        
         dup2(stdinPipe[0], STDIN_FILENO);
         dup2(stdoutPipe[1], STDOUT_FILENO);
 
@@ -40,9 +43,9 @@ std::string CGIHandler::executeScript(const std::string& method, const std::stri
         // Imposta variabili d'ambiente
         setenv("REQUEST_METHOD", method.c_str(), 1);
         setenv("QUERY_STRING", _query.c_str(), 1);
-        setenv("CONTENT_LENGTH", std::to_string(body.size()).c_str(), 1);
+        setenv("CONTENT_LENGTH", (number.str()).c_str(), 1);
 
-        execl(this->_cgipath.c_str(), this->_cgipath.c_str(), nullptr);
+        execl(this->_cgipath.c_str(), this->_cgipath.c_str(), NULL);
         exit(EXIT_FAILURE);
     } else { // Processo padre (test driver)
         // Scrivi il body nella pipe di input (se POST)
@@ -58,7 +61,7 @@ std::string CGIHandler::executeScript(const std::string& method, const std::stri
         }
         close(stdoutPipe[0]);
 
-        waitpid(pid, nullptr, 0); // Attendi la terminazione
+        waitpid(pid, NULL, 0); // Attendi la terminazione
         return output;
     }
 }
