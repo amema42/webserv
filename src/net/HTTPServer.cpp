@@ -109,14 +109,43 @@ void HTTPServer::handleGetRequest(const HTTPRequest& request, HTTPResponse& resp
 void HTTPServer::handlePostRequest(const HTTPRequest& request, HTTPResponse& response){
     
     Server& server =  getServerByHost(request, _config);
-//    size_t i = std::strtol((getHeaderValue("Content-Length", request)).c_str(), NULL, 10);
+    size_t i = std::strtol((getHeaderValue("Content-Length", request)).c_str(), NULL, 10);
+    // i <= server.max_body_size; controllo dimensioni!!
+    
     std::string fileName = CreateFileName(request);
-    std::cout << "server max body size: " << server.client_max_body_size[0] << std::endl;
+    std::string uploadDir = server.root[0] + "/uploads/";
+    struct stat st;
+    if (stat(uploadDir.c_str(), &st) == -1) {
+        if (mkdir(uploadDir.c_str(), 0755) == -1) {
+            response.setStatus(500, "Internal Server Error");
+            try{
+                std::string errorPath = server.getErrorPage("500");
+                std::string errorContent = readFile(errorPath);
+                response.body = errorContent;
+            }
+            catch(std::exception& e){
+                std::cout << e.what() <<std::endl;
+                response.body = "<html><body><h1>File Not Found</h1><p>default error page a specific one are not provided in config file</p></body></html>";
+            }
+            return;
+        }
+    }
+    std::string fullpath = uploadDir + fileName;
+    std::cout << fullpath << std::endl;
+    //infos
+    try {
+        std::ofstream outFile(fullpath.c_str(), std::ios::binary);
+        outFile.write(request.body.data(), request.body.size());
+        
+        response.setStatus(201, "Created");
+        response.setHeader("Location", "/uploads/" + fileName);
+    }
+    catch (...) {
+        response.setStatus(500, "Internal Server Error");
+        response.body = "<html><body><h1>File upload failed</h1></body></html>";
+    }
+    std::cout << "server max body size: " << server.client_max_body_size[0]<< i << std::endl;
     response.body = "<html><body><h1>Ciao, Mondo dal post!</h1></body></html>";
-    //if mutyme == multipart/form-data{
-    //gestione del filename di base altrimenti si usa il tipo espresso in content type se il campo è solo testo si salva in modo standard
-    //}
-    // i <= server.max_body_size;
     //crateFile
 }
 

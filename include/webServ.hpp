@@ -6,7 +6,11 @@
 /*   By: jacopo <jacopo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/19 15:06:40 by jacopo            #+#    #+#             */
-/*   Updated: 2025/03/31 22:52:17 by jacopo           ###   ########.fr       */
+<<<<<<< Updated upstream
+/*   Updated: 2025/04/02 18:09:55 by jacopo           ###   ########.fr       */
+=======
+/*   Updated: 2025/04/01 18:49:34 by jacopo           ###   ########.fr       */
+>>>>>>> Stashed changes
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,14 +28,19 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <ctime>
 #include <string>
 #include <algorithm>
 #include <vector>
 #include <string>
 #include <map>
 #include <cstdlib>
+#include <sys/stat.h>
+<<<<<<< Updated upstream
 //#include <cstdint>
 #include <climits>
+=======
+>>>>>>> Stashed changes
 
 #include "CGIHandler.hpp"
 #include "./Server.hpp" 

@@ -46,28 +46,38 @@ void printMap(std::map<std::string, std::string>& map, std::string first, std::s
     }
 }
 
+std::string generateUniqueFilename(std::string suffix) {
+    std::time_t now = std::time(0);
+    std::tm* timeinfo = std::localtime(&now);
+    std::ostringstream oss;
+    oss << "upload_"
+        << (timeinfo->tm_year + 1900)  
+        << (timeinfo->tm_mon + 1)      
+        << timeinfo->tm_mday           
+        << "_"
+        << timeinfo->tm_hour          
+        << timeinfo->tm_min            
+        << timeinfo->tm_sec            
+        << "." + suffix;
+    return oss.str();
+}
+
+
 //in caso si potrebbe creare una classe se serviranno più dati dall'header del post
 std::string CreateFileName(const HTTPRequest& request){
-    std::map<std::string, std::string> map = request.headers;
-    printMap(map, "1", " 2");
-    std::cout <<"IL BODY"<< request.body << std::endl;
-    
     std::string rawType = getHeaderValue("Content-Type", request);
     std::string filename;
     std::istringstream stream(rawType);
     std::string type;
     stream >>  type;
-    std::cout << "content type = " << type << std::endl;
     if(type == "multipart/form-data;"){
-        std::cout << "aaaaaaaaaaaaaa" <<std::endl;
-        std::string rawDisposition = getHeaderValue("Content-Disposition",request);
-        std:: istringstream stream2(rawDisposition);
-        std::string tmp;
-        while(stream2 >> tmp)
-            filename = tmp;
+         std::string rawDisposition = request.body.substr(request.body.find("filename=")+ 10);
+         filename = rawDisposition.substr(0, rawDisposition.find("\""));
+         return filename;
     }
-    std::cout<<"il file name  è: "<< filename<<std::endl;
-    return "tmp";
+    std::string suffix = type.substr(type.find("/") + 1);
+    filename = generateUniqueFilename(suffix);
+    return filename;
 }
 
 
