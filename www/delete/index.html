@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Webserv - Delete</title>
+  <style>
+    /* Reset & Base Styles */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      background-color: white;
+      color: #3D3D3D;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 0 40px;
+      position: relative;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    
+    /* Layout & Structure */
+    header {
+      padding-top: 20px;
+    }
+    
+    .content {
+      margin-top: 20px;
+      position: relative;
+      flex-grow: 1;
+      width: 100%;
+      max-width: 1200px;
+      padding-bottom: 80px;
+    }
+    
+    .justified {
+      text-align: justify;
+      max-width: none;
+    }
+    
+    /* Typography */
+    h1 {
+      font-size: 18vw;
+      font-weight: 900;
+      line-height: 0.8;
+      width: 100%;
+      word-break: break-word;
+      overflow-wrap: break-word;
+      margin-bottom: 0;
+      transition: color 0.3s ease;
+    }
+    
+    p {
+      font-size: 1.25rem;
+      margin-bottom: 30px;
+      max-width: 800px;
+      transition: color 0.3s ease;
+      line-height: 1.5;
+    }
+    
+    .upper-text {
+      text-transform: uppercase;
+    }
+    
+    /* Navigation */
+    .navbar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 20px 40px;
+      display: flex;
+      gap: 20px;
+      background-color: white;
+      transition: background-color 0.3s ease;
+      z-index: 1000;
+      margin-top: auto;
+    }
+    
+    .nav-link {
+      text-decoration: none;
+      color: #1b1b1b;
+      font-size: 1rem;
+      transition: color 0.3s ease;
+      padding: 5px 10px;
+    }
+    
+    .nav-link:hover {
+      color: #3D3D3D;
+    }
+    
+    .nav-link.active {
+      text-decoration: underline;
+      text-decoration-color: #c82333;
+      text-underline-offset: 5px;
+    }
+    
+    #mode-toggle {
+      border: none;
+      background: none;
+      cursor: pointer;
+      margin-left: auto;
+      padding: 5px 10px;
+      border-radius: 4px;
+      transition: all 0.3s ease;
+    }
+    
+    body:not(.dark-mode) #mode-toggle:hover {
+      background-color: rgba(0, 0, 0, 0.05);
+    }
+    
+    /* File List Section */
+    .file-list-section {
+      margin-top: 30px;
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      max-width: 800px;
+    }
+    
+    .files-wrapper {
+      margin-top: 30px;
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+    }
+    
+    .file-list {
+      list-style: none;
+      width: 100%;
+    }
+    
+    .file-item {
+      padding: 15px;
+      margin-bottom: 15px;
+      border: 1px solid #eee;
+      border-radius: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.3s ease;
+    }
+    
+    .file-item:hover {
+      border-color: #ddd;
+      background-color: #f9f9f9;
+    }
+    
+    .file-details {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      flex-grow: 1;
+    }
+    
+    .file-name {
+      font-weight: 500;
+      font-size: 1.1rem;
+    }
+    
+    .file-meta {
+      font-size: 0.9rem;
+      color: #777;
+      display: flex;
+      gap: 15px;
+    }
+    
+    .file-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .delete-button {
+      background-color: #c82333;
+      border: 2px solid #c82333;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .delete-button:hover {
+      background-color: white;
+      color: #c82333;
+    }
+    
+    .info-button {
+      background-color: transparent;
+      border: 1px solid #ccc;
+      color: #555;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+    
+    .info-button:hover {
+      background-color: #f5f5f5;
+    }
+    
+    .empty-state {
+      margin-top: 40px;
+      text-align: center;
+      padding: 40px 20px;
+      border: 2px dashed #ddd;
+      border-radius: 8px;
+      color: #777;
+    }
+    
+    .empty-state h3 {
+      margin-bottom: 10px;
+      font-size: 1.4rem;
+    }
+    
+    .empty-state p {
+      max-width: 400px;
+      margin: 0 auto 20px;
+      font-size: 1rem;
+    }
+    
+    .go-to-upload {
+      background-color: #000000;
+      border: 2px solid #000000;
+      color: #ffffff;
+      padding: 12px 24px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-block;
+    }
+    
+    .go-to-upload:hover {
+      background-color: #ffffff;
+      color: #000000;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    /* Confirmation Dialog */
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1100;
+    }
+    
+    .confirmation-dialog {
+      background-color: white;
+      padding: 25px;
+      border-radius: 8px;
+      max-width: 450px;
+      width: 90%;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    }
+    
+    .dialog-header {
+      margin-bottom: 20px;
+    }
+    
+    .dialog-header h3 {
+      font-size: 1.4rem;
+      font-weight: 600;
+      color: #c82333;
+    }
+    
+    .dialog-content {
+      margin-bottom: 25px;
+      font-size: 1.1rem;
+      line-height: 1.5;
+    }
+    
+    .dialog-buttons {
+      display: flex;
+      justify-content: flex-end;
+      gap: 15px;
+    }
+    
+    .cancel-button {
+      background-color: transparent;
+      border: 1px solid #ccc;
+      color: #555;
+      padding: 10px 18px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+    
+    .cancel-button:hover {
+      background-color: #f5f5f5;
+    }
+    
+    .confirm-delete {
+      background-color: #c82333;
+      border: 2px solid #c82333;
+      color: white;
+      padding: 10px 18px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+    
+    .confirm-delete:hover {
+      background-color: #b51f2e;
+    }
+    
+    .delete-success {
+      background-color: #f8f9fa;
+      border-left: 4px solid #c82333;
+      color: #3D3D3D;
+      padding: 15px;
+      margin-bottom: 20px;
+      display: none;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .success-icon {
+      color: #c82333;
+      font-weight: bold;
+      font-size: 1.2rem;
+    }
+    
+    /* Search and Filter */
+    .search-filter {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 25px;
+      width: 100%;
+      flex-wrap: wrap;
+    }
+    
+    .search-box {
+      flex-grow: 1;
+      position: relative;
+      min-width: 250px;
+    }
+    
+    .search-input {
+      width: 100%;
+      padding: 12px 15px 12px 40px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      transition: border-color 0.3s ease;
+    }
+    
+    .search-input:focus {
+      outline: none;
+      border-color: #c82333;
+    }
+    
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #777;
+    }
+    
+    .filter-dropdown {
+      min-width: 150px;
+      padding: 12px 15px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      background-color: white;
+      cursor: pointer;
+      transition: border-color 0.3s ease;
+    }
+    
+    .filter-dropdown:focus {
+      outline: none;
+      border-color: #c82333;
+    }
+    
+    /* Dark Mode */
+    body.dark-mode {
+      background-color: #121212;
+      color: #f5f5f5;
+    }
+    
+    body.dark-mode h1 {
+      color: #eeeeee;
+    }
+    
+    body.dark-mode .navbar {
+      background-color: #121212;
+    }
+    
+    body.dark-mode .nav-link {
+      color: #e0e0e0;
+    }
+    
+    body.dark-mode .nav-link:hover {
+      color: #ffffff;
+    }
+    
+    body.dark-mode .nav-link.active {
+      text-decoration-color: #ff6b6b;
+    }
+    
+    body.dark-mode #mode-toggle:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    body.dark-mode .file-item {
+      border-color: #333;
+    }
+    
+    body.dark-mode .file-item:hover {
+      border-color: #444;
+      background-color: #1e1e1e;
+    }
+    
+    body.dark-mode .file-meta {
+      color: #aaa;
+    }
+    
+    body.dark-mode .delete-button {
+      background-color: #ff6b6b;
+      border-color: #ff6b6b;
+      color: #121212;
+    }
+    
+    body.dark-mode .delete-button:hover {
+      background-color: transparent;
+      color: #ff6b6b;
+    }
+    
+    body.dark-mode .info-button {
+      border-color: #444;
+      color: #ccc;
+    }
+    
+    body.dark-mode .info-button:hover {
+      background-color: #1e1e1e;
+    }
+    
+    body.dark-mode .empty-state {
+      border-color: #333;
+      color: #aaa;
+    }
+    
+    body.dark-mode .go-to-upload {
+      background-color: #f5f5f5;
+      color: #121212;
+      border-color: #f5f5f5;
+    }
+    
+    body.dark-mode .go-to-upload:hover {
+      background-color: #121212;
+      color: #f5f5f5;
+      border-color: #f5f5f5;
+    }
+    
+    body.dark-mode .confirmation-dialog {
+      background-color: #1e1e1e;
+      border: 1px solid #333;
+    }
+    
+    body.dark-mode .dialog-header h3 {
+      color: #ff6b6b;
+    }
+    
+    body.dark-mode .cancel-button {
+      border-color: #444;
+      color: #ccc;
+    }
+    
+    body.dark-mode .cancel-button:hover {
+      background-color: #2c2c2c;
+    }
+    
+    body.dark-mode .confirm-delete {
+      background-color: #ff6b6b;
+      border-color: #ff6b6b;
+      color: #121212;
+    }
+    
+    body.dark-mode .confirm-delete:hover {
+      background-color: #ff5252;
+    }
+    
+    body.dark-mode .delete-success {
+      background-color: #1e1e1e;
+      border-left-color: #ff6b6b;
+      color: #e0e0e0;
+    }
+    
+    body.dark-mode .success-icon {
+      color: #ff6b6b;
+    }
+    
+    body.dark-mode .search-input,
+    body.dark-mode .filter-dropdown {
+      background-color: #1e1e1e;
+      border-color: #444;
+      color: #e0e0e0;
+    }
+    
+    body.dark-mode .search-input:focus,
+    body.dark-mode .filter-dropdown:focus {
+      border-color: #ff6b6b;
+    }
+    
+    body.dark-mode .search-icon {
+      color: #aaa;
+    }
+    
+    /* Responsive Media Queries */
+    @media (max-width: 1200px) {
+      h1 {
+        font-size: 20vw;
+      }
+      .justified {
+        width: 100%;
+        max-width: 100%;
+      }
+      .content {
+        max-width: 100%;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      body {
+        padding: 0 25px;
+      }
+      h1 {
+        font-size: 25vw;
+        line-height: 0.9;
+      }
+      .navbar {
+        padding: 15px 25px;
+        justify-content: space-between;
+      }
+      p {
+        font-size: 1.1rem;
+        line-height: 1.4;
+      }
+      .justified {
+        text-align: left;
+      }
+      .file-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+      }
+      .file-actions {
+        width: 100%;
+        justify-content: flex-end;
+      }
+      .search-filter {
+        flex-direction: column;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 30vw;
+      }
+      body {
+        padding: 0 20px;
+      }
+      .navbar {
+        padding: 15px 20px;
+      }
+      .nav-link {
+        font-size: 0.9rem;
+      }
+      p {
+        font-size: 1rem;
+        margin-bottom: 20px;
+        line-height: 1.4;
+      }
+      .justified {
+        width: 100%;
+      }
+      .file-meta {
+        flex-direction: column;
+        gap: 3px;
+      }
+      .dialog-buttons {
+        flex-direction: column-reverse;
+      }
+      .dialog-buttons button {
+        width: 100%;
+      }
+    }
+    
+    @media (max-width: 360px) {
+      h1 {
+        font-size: 35vw;
+      }
+      .navbar {
+        flex-wrap: wrap;
+        gap: 15px;
+        padding: 12px 20px;
+      }
+      #mode-toggle {
+        margin-left: 0;
+        order: 3;
+        width: 100%;
+        padding: 8px 0;
+        background-color: rgba(0, 0, 0, 0.05);
+      }
+      body.dark-mode #mode-toggle {
+        background-color: rgba(255, 255, 255, 0.1);
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>D<em>elete</em></h1>
+  </header>
+  <div class="content">
+    <p class="justified">
+      This page allows you to manage and delete files from the Webserv HTTP server. Browse your uploaded files, select the ones you want to remove, and confirm deletion. This action cannot be undone.
+    </p>
+
+    <div class="delete-success" id="delete-success">
+      <span class="success-icon">✓</span>
+      <span>File deleted successfully.</span>
+    </div>
+
+    <div class="file-list-section">
+      <div class="search-filter">
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input type="text" class="search-input" placeholder="Search files..." id="search-input">
+        </div>
+        <select class="filter-dropdown" id="filter-type">
+          <option value="all">All Types</option>
+          <option value="image">Images</option>
+          <option value="document">Documents</option>
+          <option value="video">Videos</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+
+      <div class="files-wrapper">
+        <!-- Sample file list - In production, this would be generated by the server -->
+        <ul class="file-list" id="file-list">
+          <li class="file-item">
+            <div class="file-details">
+              <span class="file-name">project_presentation.pdf</span>
+              <div class="file-meta">
+                <span>5.2 MB</span>
+                <span>PDF Document</span>
+                <span>Uploaded: 2 days ago</span>
+              </div>
+            </div>
+            <div class="file-actions">
+              <button class="info-button">Details</button>
+              <button class="delete-button" data-filename="project_presentation.pdf">Delete</button>
+            </div>
+          </li>
+          <li class="file-item">
+            <div class="file-details">
+              <span class="file-name">profile_picture.png</span>
+              <div class="file-meta">
+                <span>1.8 MB</span>
+                <span>PNG Image</span>
+                <span>Uploaded: 1 week ago</span>
+              </div>
+            </div>
+            <div class="file-actions">
+              <button class="info-button">Details</button>
+              <button class="delete-button" data-filename="profile_picture.png">Delete</button>
+            </div>
+          </li>
+          <li class="file-item">
+            <div class="file-details">
+              <span class="file-name">data_backup.zip</span>
+              <div class="file-meta">
+                <span>42.7 MB</span>
+                <span>ZIP Archive</span>
+                <span>Uploaded: 3 weeks ago</span>
+              </div>
+            </div>
+            <div class="file-actions">
+              <button class="info-button">Details</button>
+              <button class="delete-button" data-filename="data_backup.zip">Delete</button>
+            </div>
+          </li>
+        </ul>
+
+        <!-- Empty state (hidden by default, shown when no files match filter) -->
+        <div class="empty-state" id="empty-state" style="display: none;">
+          <h3>No files found</h3>
+          <p>There are no files matching your current filter, or you haven't uploaded any files yet.</p>
+          <a href="/post" class="go-to-upload">Upload Files</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Confirmation Dialog -->
+  <div class="overlay" id="delete-overlay">
+    <div class="confirmation-dialog">
+      <div class="dialog-header">
+        <h3>Confirm Deletion</h3>
+      </div>
+      <div class="dialog-content">
+        Are you sure you want to delete <strong id="filename-to-delete">this file</strong>? This action cannot be undone.
+      </div>
+      <div class="dialog-buttons">
+        <button class="cancel-button" id="cancel-delete">Cancel</button>
+        <button class="confirm-delete" id="confirm-delete">Delete File</button>
+      </div>
+    </div>
+  </div>
+  
+  <nav class="navbar">
+    <a href="/" class="nav-link">home</a>
+    <a href="/about" class="nav-link">about</a>
+    <a href="/post" class="nav-link">post</a>
+    <a href="/delete" class="nav-link active">delete</a>
+    <button id="mode-toggle" class="nav-link">Mode</button>
+  </nav>
+  
+  <script>
+    const modeToggle = document.getElementById('mode-toggle');
+    const body = document.body;
+    const deleteButtons = document.querySelectorAll('.delete-button');
+    const cancelDelete = document.getElementById('cancel-delete');
+    const confirmDelete = document.getElementById('confirm-delete');
+    const deleteOverlay = document.getElementById('delete-overlay');
+    const filenameToDelete = document.getElementById('filename-to-delete');
+    const deleteSuccess = document.getElementById('delete-success');
+    const searchInput = document.getElementById('search-input');
+    const filterType = document.getElementById('filter-type');
+    const fileList = document.getElementById('file-list');
+    const emptyState = document.getElementById('empty-state');
+    
+    let currentFileToDelete = '';
+    
+    // Handle delete button clicks
+    deleteButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        currentFileToDelete = button.getAttribute('data-filename');
+        filenameToDelete.textContent = currentFileToDelete;
+        deleteOverlay.style.display = 'flex';
+      });
+    });
+    
+    // Handle cancel delete
+    cancelDelete.addEventListener('click', () => {
+      deleteOverlay.style.display = 'none';
+      currentFileToDelete = '';
+    });
+    
+    // Handle confirm delete
+    confirmDelete.addEventListener('click', () => {
+      // In production, this would send a DELETE request to the server
+      // For demo, we'll just remove the item from the DOM
+      const items = document.querySelectorAll('.file-item');
+      items.forEach(item => {
+        const filename = item.querySelector('.file-name').textContent;
+        if (filename === currentFileToDelete) {
+          item.style.opacity = '0';
+          setTimeout(() => {
+            item.remove();
+            // Check if we need to show the empty state
+            if (fileList.children.length === 0) {
+              emptyState.style.display = 'block';
+            }
+          }, 300);
+        }
+      });
+      
+      // Hide overlay and show success message
+      deleteOverlay.style.display = 'none';
+      deleteSuccess.style.display = 'flex';
+      
+      // Hide success message after 3 seconds
+      setTimeout(() => {
+        deleteSuccess.style.display = 'none';
+      }, 3000);
+    });
+    
+    // Search functionality
+    searchInput.addEventListener('input', filterFiles);
+    filterType.addEventListener('change', filterFiles);
+    
+    function filterFiles() {
+      const searchTerm = searchInput.value.toLowerCase();
+      const filterValue = filterType.value;
+      const items = document.querySelectorAll('.file-item');
+      let visibleCount = 0;
+      
+      items.forEach(item => {
+        const fileName = item.querySelector('.file-name').textContent.toLowerCase();
+        const fileType = item.querySelector('.file-meta').textContent.toLowerCase();
+        
+        const matchesSearch = fileName.includes(searchTerm);
+        const matchesFilter = filterValue === 'all' || 
+                              (filterValue === 'image' && fileType.includes('image')) ||
+                              (filterValue === 'document' && (fileType.includes('pdf') || fileType.includes('document'))) ||
+                              (filterValue === 'video' && fileType.includes('video')) ||
+                              (filterValue === 'other' && !fileType.includes('image') && 
+                                                         !fileType.includes('pdf') && 
+                                                         !fileType.includes('document') && 
+                                                         !fileType.includes('video'));
+        
+        if (matchesSearch && matchesFilter) {
+          item.style.display = 'flex';
+          visibleCount++;
+        } else {
+          item.style.display = 'none';
+        }
+      });
+      
+      // Show/hide empty state based on search results
+      if (visibleCount === 0) {
+        emptyState.style.display = 'block';
+      } else {
+        emptyState.style.display = 'none';
+      }
+    }
+    
+    // Close overlay if clicked outside the dialog
+    deleteOverlay.addEventListener('click', (e) => {
+      if (e.target === deleteOverlay) {
+        deleteOverlay.style.display = 'none';
+      }
+    });
+    
+    // Detect system preference
+    const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+    let isDarkMode = prefersDarkScheme.matches;
+    
+    // Apply initial mode
+    function setInitialMode() {
+      if (isDarkMode) {
+        body.classList.add('dark-mode');
+        modeToggle.textContent = 'Light Mode';
+      } else {
+        body.classList.remove('dark-mode');
+        modeToggle.textContent = 'Dark Mode';
+      }
+    }
+    
+    setInitialMode();
+    
+    // Toggle dark/light mode
+    modeToggle.addEventListener('click', () => {
+      isDarkMode = !isDarkMode;
+      body.classList.toggle('dark-mode', isDarkMode);
+      modeToggle.textContent = isDarkMode ? 'Light Mode' : 'Dark Mode';
+    });
+  </script>
+</body>
+</html>
