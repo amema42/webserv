@@ -283,7 +283,19 @@ bool insertArgInListen(std::string& Word, int look_for, std::vector<int>& args, 
 	return false;
 }
 
-
+bool isWordValid(const std::string& Word, const std::vector<Location>& location)
+{
+	if (location.size() == 0)
+		return true;
+	int i = 0;
+	while (location[i].path.back() != Word && i < location.size())
+		i++;
+	if (i == location.size())
+		return true;
+	else 
+		return false;
+	return true;
+}
 
 bool endsWithPython(const std::string& str) 
 {
@@ -526,11 +538,17 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
 					}
 					case LOCATION_PATH:
 					{
-						//nessuna location  deve avere lo stesso path, neanche negli altri location
+						if (!isWordValid(Word, servers.back().location))
+						{
+							std::cout << "syntax error at line " << n_line
+							<< ": path '" << Word << "' is already taken in this server";
+							look_for = ERROR;
+							break;
+						}
 						servers.back().location.push_back(Location());
 						if (insertArgInField(Word, look_for, servers.back().location.back().path, n_line))
 						{
-								look_for = OPEN_L_BRACKET;
+							look_for = OPEN_L_BRACKET;
 						}
 						else
 							look_for = ERROR;
