@@ -261,6 +261,36 @@ bool insertArgInMax(std::string& Word, int look_for, std::vector<size_t>& args, 
 	return false;
 }
 
+
+
+bool isNameValid(const std::string& Word, const std::vector<Server>& server)
+{
+	if (server.size() == 1)
+		return true;
+	int i = 0;
+	while (server[i].server_name.back() != Word && i < static_cast<int>(server.size()) - 1)
+		i++;
+	if (i == static_cast<int>(server.size()))
+		return true;
+	else 
+		return false;
+	return true;
+}
+
+bool isPortValid(const std::string& Word, const std::vector<Server>& server)
+{
+	if (server.size() == 1)
+		return true;
+	int i = 0;
+	while (server[i].listen.back() != static_cast<int>(std::atoi(Word.substr(0, Word.size() - 1).c_str())) && i < static_cast<int>(server.size()) - 1)
+		i++;
+	if (i == static_cast<int>(server.size()))
+		return true;
+	else 
+		return false;
+	return true;
+}
+
 bool insertArgInListen(std::string& Word, int look_for, std::vector<int>& args, int n_line)
 {
 	if (((static_cast<int>(args.size())) < (look_for % 10)) || ((look_for % 10) == 9))
@@ -288,9 +318,9 @@ bool isWordValid(const std::string& Word, const std::vector<Location>& location)
 	if (location.size() == 0)
 		return true;
 	int i = 0;
-	while (location[i].path.back() != Word && i < location.size())
+	while (location[i].path.back() != Word && i < static_cast<int>(location.size()))
 		i++;
-	if (i == location.size())
+	if (i == static_cast<int>(location.size()))
 		return true;
 	else 
 		return false;
@@ -436,7 +466,12 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
 					}
 					case LISTEN_ARG:
 					{
-						//controllo che sia non utilizzata da altre loc nello stesso serv
+						//if (isPortValid(Word, servers))
+						//{
+						//	std::cout << "syntax error at line " << n_line
+						//	<< ": port n: '" << Word << "' already used!\n";
+						//	look_for = ERROR;
+						//}
 						if (insertArgInListen(Word, look_for, servers.back().listen, n_line))
 						{
 							if (endsWithSemicolon(Word))
