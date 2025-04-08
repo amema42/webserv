@@ -265,12 +265,15 @@ bool insertArgInMax(std::string& Word, int look_for, std::vector<size_t>& args, 
 
 bool isNameValid(const std::string& Word, const std::vector<Server>& server)
 {
-	if (server.size() == 1)
+	if (server.size() <= 1)
+	{
+		//std::cout << "entrato nel controllo giusto\n";
 		return true;
+	}
 	int i = 0;
-	while (server[i].server_name.back() != Word && i < static_cast<int>(server.size()) - 1)
+	while (i < static_cast<int>(server.size()) - 1 && server[i].server_name.back() != Word.substr(0, Word.size() - 1))
 		i++;
-	if (i == static_cast<int>(server.size()))
+	if (i == static_cast<int>(server.size()) - 1)
 		return true;
 	else 
 		return false;
@@ -281,7 +284,7 @@ bool isPortValid(const std::string& Word, const std::vector<Server>& server)
 {
 	if (server.size() <= 1)
 	{
-		std::cout << "entrato nel controllo giusto\n";
+		std::cout << "entrato nel controllo giusto--------------------------------------\n";
 		return true;
 	}
 	int i = 0;
@@ -474,6 +477,7 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
 							std::cout << "syntax error at line " << n_line
 							<< ": port n: '" << Word << "' already used!\n";
 							look_for = ERROR;
+							break;
 						}
 						if (insertArgInListen(Word, look_for, servers.back().listen, n_line))
 						{
@@ -486,7 +490,13 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
 					}
 					case SERVER_NAME_ARG:
 					{
-						//controllo che sia non utilizzata da altri serv
+						if (!isNameValid(Word, servers))
+						{
+							std::cout << "syntax error at line " << n_line
+							<< ": name '" << Word << "' already used!\n";
+							look_for = ERROR;
+							break;
+						}
 						if (insertArgInField(Word, look_for, servers.back().server_name, n_line))
 						{
 							if (endsWithSemicolon(Word))
