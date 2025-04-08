@@ -4,24 +4,6 @@
 #include "HTTPResponse.hpp"
 #include "ClientConnection.hpp"
 
-
-#include <sstream>
-#include <iostream>
-#include <stdexcept>
-#include <unistd.h>
-#include <fcntl.h>
-#include <vector>
-#include <cstring>
-#include <cstdlib>
-#include <poll.h>
-#include <cerrno>
-#include <algorithm>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <fcntl.h>
-#include <unistd.h>
-
 HTTPServer::HTTPServer(const Config &config) : _config(config) {
     initSockets();
 }
@@ -84,7 +66,6 @@ void HTTPServer::handleGetRequest(const HTTPRequest& request, HTTPResponse& resp
         filepath << server.root[0] << request.uri << "/" << server.index[0];//sistemare per sapere la location
     std::cout << "\t\tla path per il file da trovare" << filepath.str() << std::endl;
     try {
-        // std::string contentType = getMimeType(filePath); // Implementa mappa MIME vogliamo/dobbiamo farlo??
         std::string content = readFile(filepath.str());
         response.setStatus(200, "OK");
         response.body = content;
@@ -203,6 +184,9 @@ void HTTPServer::handleClientRequest(ClientConnection *clientConn, const std::st
         std::cerr << "Errore in write(): " << strerror(errno) << std::endl;
     }
 
+
+//IMPOTATE CHIDERE AD ANI POTREBBE ESSERE QUI IL PROBLEMA DEL DOPPIO CLICK!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
     // After sending the response , closing the connection (***Va gestito keep-alive?***)
     //close(client_fd);
     /* bool keepAlive = false; r.114: part of: keep-alive connection implem. */ 
@@ -210,19 +194,29 @@ void HTTPServer::handleClientRequest(ClientConnection *clientConn, const std::st
     if (richiesta contiene "Connection: keep-alive" negli header) :NON chiudiamo la connessione
     else :chiudiamo la connessione
     */
+    
+    
+    
     bool keepAlive = false; 
-    std::map<std::string, std::string>::iterator it = request.headers.find("Connection");
-    if (it != request.headers.end()) {
-        std::string conn = it->second;
-        // Convert w. tolower to avoid case sensitivity 
-        for (size_t i = 0; i < conn.size(); ++i) {
-            conn[i] = tolower(conn[i]);
-        }
-        if (conn == "keep-alive")
-            keepAlive = true;
+    std::string conn = getHeaderValue("Connection", request); 
+    for (size_t i = 0; i < conn.size(); ++i) {
+        conn[i] = tolower(conn[i]);
     }
-
-    if (!keepAlive) {
+    if (conn == "keep-alive")
+        keepAlive = true;
+    if (keepAlive){
+        size_t headerEnd = rawRequest.find("\r\n\r\n");
+        size_t contentLength = 0;
+        
+        std::map<std::string, std::string>::iterator contentLengthIt = request.headers.find("Content-Length");
+        if (contentLengthIt != request.headers.end()) {
+            contentLength = atoi(contentLengthIt->second.c_str());
+        }
+        
+        size_t totalLength = headerEnd + 4 + contentLength; // 4 = lunghezza di "\r\n\r\n"
+        clientConn->removeProcessedRequest(totalLength);
+    }
+    else{
         // Chiudiamo la connessione se non è keep-alive && in caso di keep-alive dopo aver processato la richiesta, va rimossa dal buffer SOLO la parte processata.
         close(clientConn->getFd());
     }
@@ -251,6 +245,7 @@ void HTTPServer::eventLoop() {
 
     while (loop)
     {
+        std::cout << "LOOP" << std::endl; //linea da eliminare;
         int ret = poll(&pollfds[0], pollfds.size(), -1);
         if (ret < 0)
         {
@@ -311,28 +306,12 @@ void HTTPServer::eventLoop() {
                     }
                     if (!conn) continue;
 
-                    char buffer[1024];
+                    char buffer[4096];
                     ssize_t n = read(pollfds[i].fd, buffer, sizeof(buffer) - 1);
-                    if (n <= 0)
+                    if (n > 0)
                     {
-                        if (n < 0)
-                            std::cerr << "Error in read(): " << strerror(errno) << std::endl;
-                        else
-                            std::cout << "closing connection: fd " << pollfds[i].fd << std::endl;
-                        close(pollfds[i].fd);
-                        // Rimuovi il pollfd dalla lista + e l'oggetto ClientConnection
-                        pollfds.erase(pollfds.begin() + i);
-                        _clientConnections.erase(
-                            std::remove(_clientConnections.begin(), _clientConnections.end(), conn),
-                            _clientConnections.end());
-                        delete conn;
-                        --i;
-                    }
-                    else
-                    {
-                        buffer[n] = '\0';
                         // Add i dati letti al buffer persistente della connection
-                        conn->getBuffer().append(buffer);
+                        conn->getBuffer().append(buffer, n);
                         std::cout << "Buffer for fd " << conn->getFd() << ": " << conn->getBuffer() << std::endl;
                         if (conn->hasCompleteRequest()) {
                             // Qui, per semplicità, consideriamo l'intero buffer come una richiesta
@@ -357,19 +336,37 @@ void HTTPServer::eventLoop() {
                         _clientConnections.erase(
                             std::remove(_clientConnections.begin(), _clientConnections.end(), conn),
                             _clientConnections.end());
-                        delete conn;
+                            delete conn;
                             //l'indice per la rimozione
                         --i;
-
+                        }
+                    }
+                    if (n <= 0)
+                    {
+                        if (n < 0){
+                            if (errno == EAGAIN || errno == EWOULDBLOCK) 
+                                std::cout << "waiting" << std::endl;
+                            else
+                                std::cerr << "Error in read(): " << strerror(errno) << std::endl;
+                        }
+                        else
+                            std::cout << "closing connection: fd " << pollfds[i].fd << std::endl;
+                        close(pollfds[i].fd);
+                        // Rimuovi il pollfd dalla lista + e l'oggetto ClientConnection
+                        pollfds.erase(pollfds.begin() + i);
+                        _clientConnections.erase(
+                            std::remove(_clientConnections.begin(), _clientConnections.end(), conn),
+                            _clientConnections.end());
+                        delete conn;
+                        --i;
                     }
                 }
             }
         }
     }
 }
-}
+
 void HTTPServer::run() {
-    // Start loop degli eventi
     eventLoop();
 }
 

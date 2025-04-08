@@ -1,10 +1,9 @@
-#include "ClientConnection.hpp"
+#include "../../include/ClientConnection.hpp"
 #include <cstring>  // Per std::string::npos
 
 ClientConnection::ClientConnection(int fd) : fd(fd), buffer("") {}
 
 ClientConnection::~ClientConnection() {
-    // La chiusura del fd sarà gestita altrove (nel server)
 }
 
 int ClientConnection::getFd() const {
@@ -16,8 +15,24 @@ std::string &ClientConnection::getBuffer() {
 }
 
 bool ClientConnection::hasCompleteRequest() const {
-    // Per semplicità, consideriamo completa una richiesta se nel buffer esiste "\r\n\r\n"
-    return (buffer.find("\r\n\r\n") != std::string::npos);
+    size_t headerEnd = buffer.find("\r\n\r\n");
+    if (headerEnd == std::string::npos)
+        return false;
+    std::string headers = buffer.substr(0, headerEnd); 
+    size_t contentLengthPos = headers.find("Content-Length:");
+    if (contentLengthPos != std::string::npos) {
+        // getting value of content length
+        size_t valueStart = headers.find_first_not_of(" \t", contentLengthPos + 15);
+        if (valueStart != std::string::npos) {
+            size_t valueEnd = headers.find_first_of("\r\n", valueStart);
+            if (valueEnd != std::string::npos) {
+                std::string contentLengthStr = headers.substr(valueStart, valueEnd - valueStart);
+                int contentLength = atoi(contentLengthStr.c_str());
+                return (buffer.size() >= headerEnd + 4 + contentLength);
+            }
+        }
+    }
+    return true;
 }
 
 void ClientConnection::removeProcessedRequest(size_t processedLength) {
