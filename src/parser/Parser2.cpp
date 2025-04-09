@@ -70,10 +70,6 @@ int ParseWord(int look_for, std::string Word)
 		{
             return L_UPLOAD_STORE_ARG;
 		}
-        if (Word == "client_max_body_size")
-		{
-            return L_CLIENT_MAX_BODY_SIZE;
-		}
     }
     return ERROR;//non ha trovato la parola che si aspettava
 }
@@ -265,6 +261,42 @@ bool insertArgInMax(std::string& Word, int look_for, std::vector<size_t>& args, 
 	return false;
 }
 
+
+
+bool isNameValid(const std::string& Word, const std::vector<Server>& server)
+{
+	if (server.size() <= 1)
+	{
+		//std::cout << "entrato nel controllo giusto\n";
+		return true;
+	}
+	int i = 0;
+	while (i < static_cast<int>(server.size()) - 1 && server[i].server_name.back() != Word.substr(0, Word.size() - 1))
+		i++;
+	if (i == static_cast<int>(server.size()) - 1)
+		return true;
+	else 
+		return false;
+	return true;
+}
+
+bool isPortValid(const std::string& Word, const std::vector<Server>& server)
+{
+	if (server.size() <= 1)
+	{
+		std::cout << "entrato nel controllo giusto--------------------------------------\n";
+		return true;
+	}
+	int i = 0;
+	while (i < static_cast<int>(server.size()) -1  && server[i].listen.back() != static_cast<int>(std::atoi(Word.substr(0, Word.size() - 1).c_str())))
+		i++;
+	if (i == static_cast<int>(server.size()) - 1)
+		return true;
+	else 
+		return false;
+	return true;
+}
+
 bool insertArgInListen(std::string& Word, int look_for, std::vector<int>& args, int n_line)
 {
 	if (((static_cast<int>(args.size())) < (look_for % 10)) || ((look_for % 10) == 9))
@@ -287,7 +319,19 @@ bool insertArgInListen(std::string& Word, int look_for, std::vector<int>& args, 
 	return false;
 }
 
-
+bool isWordValid(const std::string& Word, const std::vector<Location>& location)
+{
+	if (location.size() == 0)
+		return true;
+	int i = 0;
+	while (location[i].path.back() != Word && i < static_cast<int>(location.size()))
+		i++;
+	if (i == static_cast<int>(location.size()))
+		return true;
+	else 
+		return false;
+	return true;
+}
 
 bool endsWithPython(const std::string& str) 
 {
@@ -301,6 +345,26 @@ bool endsWithPython(const std::string& str)
     return str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0;
 }
 
+
+bool keyExists(std::map<std::string, std::string>& myMap, const std::string& key)
+{
+    return myMap.find(key) != myMap.end();
+}
+
+bool check_error_code(std::map<std::string, std::string>& error_map, const std::string& error_code)
+{
+	if (keyExists(error_map, error_code))
+	{
+		std::cout << "you already have this error code: '" << error_code << "' defined! ";
+		return false;
+	}
+	if (!(error_code == "400" || error_code == "403" || error_code == "404" || error_code == "405" || error_code == "413" || error_code == "500"))
+	{
+		std::cout << "unexpected error code: '" << error_code << "' ";
+		return false;
+	}
+	return true;
+}
 
 /*
 lo stream iss controlla per ogni linea tutte le parole.
@@ -385,6 +449,9 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
 								<< ": watch out for '" << Word
 								<< "' closed brackets without 'listen', 'server_name' or 'root' field\n";
 							}
+							if (servers.back().client_max_body_size.size() == 0)
+								servers.back().client_max_body_size.push_back(1048576);
+
 						}
                 		else if ((look_for = ParseWord(look_for, Word))) //cambia look for in base a cio che trova, se trova 0 è errore
                 		{
@@ -405,7 +472,13 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
 					}
 					case LISTEN_ARG:
 					{
-						//controllo che sia non utilizzata da altri
+						if (!isPortValid(Word, servers))
+						{
+							std::cout << "syntax error at line " << n_line
+							<< ": port n: '" << Word << "' already used!\n";
+							look_for = ERROR;
+							break;
+						}
 						if (insertArgInListen(Word, look_for, servers.back().listen, n_line))
 						{
 							if (endsWithSemicolon(Word))
@@ -417,7 +490,13 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
 					}
 					case SERVER_NAME_ARG:
 					{
-						//controllo che sia non utilizzata da altri
+						if (!isNameValid(Word, servers))
+						{
+							std::cout << "syntax error at line " << n_line
+							<< ": name '" << Word << "' already used!\n";
+							look_for = ERROR;
+							break;
+						}
 						if (insertArgInField(Word, look_for, servers.back().server_name, n_line))
 						{
 							if (endsWithSemicolon(Word))
@@ -429,7 +508,7 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
 					}
 					case ROOT_ARG:
 					{
-						//controllo che sia non utilizzata da altri
+						//controllo che sia non utilizzata da altri serv
 						if (insertArgInField(Word, look_for, servers.back().root, n_line))
 						{
 							if (endsWithSemicolon(Word))
@@ -451,17 +530,24 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
 						break;
 					}
 					case ERROR_PAGE_ARG:
-					{	std::string errorCode = Word;
-    					std::string errorPage;
-   						if (!(iss >> errorPage))
+					{	
+						std::string error_code = Word;
+    					std::string error_page;
+						if(!check_error_code(servers.back().error_page, error_code))  //-controlla che ci sia l'error giusto e che non sia gia stato fatto
 						{
-        					std::cout << "syntax error: missing error page for code " << errorCode << "\n";
+							std::cout << " syntax error at line " << n_line << std::endl;
+							look_for = ERROR;
+							break;
+						}
+   						if (!(iss >> error_page))
+						{
+        					std::cout << "syntax error: missing error page for code " << error_code << "\n";
         					look_for = ERROR;
         					break;
     					}
-    					if (endsWithSemicolon(errorPage))
+    					if (endsWithSemicolon(error_page))
 						{
-        					errorPage = errorPage.substr(0, errorPage.size() - 1);
+        					error_page = error_page.substr(0, error_page.size() - 1);
         					look_for = IN_SERVER;
     					}
 						else
@@ -469,12 +555,11 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
 							look_for = ERROR;
 							std::cout << "syntax error: no closed semicolon at line " << n_line << "\n";
 						}
-						servers.back().error_page[errorCode] = errorPage;
+						servers.back().error_page[error_code] = error_page;
 						break;
 					}
 					case CLIENT_MAX_BODY_SIZE:
 					{
-						//deve controllare e convertire m k etc
 						if (insertArgInMax(Word, look_for, servers.back().client_max_body_size,  n_line))
 						{
 							if (endsWithSemicolon(Word))
@@ -501,11 +586,17 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
 					}
 					case LOCATION_PATH:
 					{
-						//nessuna location  deve avere lo stesso path, neanche negli altri location
+						if (!isWordValid(Word, servers.back().location))
+						{
+							std::cout << "syntax error at line " << n_line
+							<< ": path '" << Word << "' is already taken in this server";
+							look_for = ERROR;
+							break;
+						}
 						servers.back().location.push_back(Location());
 						if (insertArgInField(Word, look_for, servers.back().location.back().path, n_line))
 						{
-								look_for = OPEN_L_BRACKET;
+							look_for = OPEN_L_BRACKET;
 						}
 						else
 							look_for = ERROR;
@@ -600,17 +691,6 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
 					case L_UPLOAD_STORE_ARG:
 					{
 						if (insertArgInField(Word, look_for, servers.back().location.back().l_upload_store, n_line))
-						{
-							if (endsWithSemicolon(Word))
-								look_for = IN_LOCATION;
-						}
-						else
-							look_for = ERROR;
-						break;
-					}
-					case L_CLIENT_MAX_BODY_SIZE:
-					{
-						if (insertArgInMax(Word, look_for, servers.back().location.back().l_client_max_body_size, n_line))
 						{
 							if (endsWithSemicolon(Word))
 								look_for = IN_LOCATION;
