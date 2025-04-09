@@ -6,7 +6,7 @@
 /*   By: jacopo <jacopo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/19 15:06:40 by jacopo            #+#    #+#             */
-/*   Updated: 2025/04/01 18:49:34 by jacopo           ###   ########.fr       */
+/*   Updated: 2025/04/04 16:47:31 by jacopo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,31 +16,37 @@
 
 //include all the library here pls 
 
-#include <unistd.h>
-#include <sys/wait.h>
-#include <fcntl.h>
-#include <cstdlib>
-#include <vector>
-#include <iostream>
-#include <fstream>
 #include <sstream>
+#include <iostream>
+#include <stdexcept>
+#include <unistd.h>
+#include <fcntl.h>
+#include <vector>
+#include <cstring>
+#include <cstdlib>
+#include <poll.h>
+#include <cerrno>
+#include <algorithm>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/wait.h>
+#include <sys/stat.h>
+#include <netinet/in.h>
+#include <fstream>
 #include <ctime>
 #include <string>
-#include <algorithm>
 #include <vector>
 #include <string>
 #include <map>
-#include <cstdlib>
-#include <sys/stat.h>
+
 #include "CGIHandler.hpp"
 #include "./Server.hpp" 
 #include "./Location.hpp" 
-#include "./ClientConnection.hpp"
+#include "ClientConnection.hpp"
 #include "./Config.hpp"
 #include "HTTPRequest.hpp"
 #include "HTTPResponse.hpp"
 #include "./HTTPServer.hpp"
-//#include "Parser.hpp" //parser di ani
 #include "Tokenizer.hpp"
 
 #define SIZE_MAX 18446744073709551615UL

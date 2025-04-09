@@ -1,11 +1,10 @@
 #ifndef HTTPSERVER_HPP
 #define HTTPSERVER_HPP
 
+#include "ClientConnection.hpp"
 #include "webServ.hpp"
 #include "Config.hpp"
-#include "ClientConnection.hpp"
-#include <vector>
-
+class ClientConnection;
 
 class HTTPServer {
 public:
@@ -20,7 +19,7 @@ private:
     // ToDo: costruire qui una struttura per gestire (ogni) socket di ascolto
     std::vector<int> _listenSockets;
 
-    std::vector<ClientConnection*> _clientConnections; //container per le connessioni client attive
+    std::vector<ClientConnection*> _clientConnections; //container per le connessioni client attive eliminiamo al memoria??
 
     // helper functions
     void initSockets();

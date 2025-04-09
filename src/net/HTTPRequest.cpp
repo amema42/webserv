@@ -13,7 +13,6 @@ bool HTTPRequest::isChunked() const {
     std::map<std::string, std::string>::const_iterator it = headers.find("Transfer-Encoding");
     if (it != headers.end()) {
         std::string value = it->second;
-        // Convertiamo in minuscolo per evitare problemi di case-sensitive
         std::transform(value.begin(), value.end(), value.begin(), ::tolower);
         return (value.find("chunked") != std::string::npos);
     }
@@ -25,7 +24,7 @@ void HTTPRequest::parseRequest(const std::string &rawRequest) {
     std::size_t pos = rawRequest.find("\r\n\r\n");
     if (pos == std::string::npos) {
         // Qui, in un'applicazione reale, potresti decidere di attendere altri dati.
-        // Per ora, usciamo dalla funzione o segnaliamo un errore.
+        // Per ora, usciamo dalla funzione o asegnaliamo un errore.
         return;
     }
     // La parte degli header termina in pos + 4
