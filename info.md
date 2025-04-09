@@ -21,3 +21,9 @@ delete: not started
 
 GESTIONE DEL TIMEOUT
 qualche altro script in python?? per la CGI
+controllare i metodi allowed
+sarebbe utile implementare un ctrl c per spegnere tutto
+Allocazioni di memoria????
+le classi devono essere canonical ortodoxal??
+
+CONTROLLARE LO SHEET DI VALUTAZIONE

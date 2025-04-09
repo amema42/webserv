@@ -91,7 +91,18 @@ void HTTPServer::handlePostRequest(const HTTPRequest& request, HTTPResponse& res
     
     Server& server =  getServerByHost(request, _config);
     size_t i = std::strtol((getHeaderValue("Content-Length", request)).c_str(), NULL, 10);
-    // i <= server.max_body_size; controllo dimensioni!!
+    if(i > server.client_max_body_size[0]){
+        try{
+            std::string errorPath = server.getErrorPage("413");
+            std::string errorContent = readFile(errorPath);
+            response.body = errorContent;
+        }
+        catch(std::exception& e){
+            std::cout << e.what() <<std::endl;
+            response.body = "<html><body><h1>File Not Found</h1><p>default error page  error:413 a specific one are not provided in config file</p></body></html>";
+        }
+        return;
+    }
     
     std::string fileName = CreateFileName(request);
     std::string uploadDir = server.root[0] + "/uploads/";
@@ -106,13 +117,15 @@ void HTTPServer::handlePostRequest(const HTTPRequest& request, HTTPResponse& res
             }
             catch(std::exception& e){
                 std::cout << e.what() <<std::endl;
-                response.body = "<html><body><h1>File Not Found</h1><p>default error page a specific one are not provided in config file</p></body></html>";
+                response.body = "<html><body><h1>File Not Found</h1><p>default error page error:500 a specific one are not provided in config file</p></body></html>";
             }
             return;
         }
     }
     std::string fullpath = uploadDir + fileName;
+    //infos
     std::cout << fullpath << std::endl;
+    std::cout << "server max body size: " << server.client_max_body_size[0]<< " COntent size" << i << std::endl;
     //infos
     try {
         std::ofstream outFile(fullpath.c_str(), std::ios::binary);
@@ -125,18 +138,17 @@ void HTTPServer::handlePostRequest(const HTTPRequest& request, HTTPResponse& res
         response.setStatus(500, "Internal Server Error");
         response.body = "<html><body><h1>File upload failed</h1></body></html>";
     }
-    std::cout << "server max body size: " << server.client_max_body_size[0]<< i << std::endl;
     response.body = "<html><body><h1>Ciao, Mondo dal post!</h1></body></html>";
     //crateFile
 }
 
 void HTTPServer::handleClientRequest(ClientConnection *clientConn, const std::string &rawRequest) {
-    // 1. Creo un "oggetto" per il parsing della richiesta ed uno per la risposta!!!
+
     HTTPRequest request;
     HTTPResponse response;
     
     request.parseRequest(rawRequest);
-    // 2. Costruiamo la rispostaaaa
+    // Costruiamo la rispostaaaa
     if(request.method != "GET" && request.method != "POST" && request.method != "DELETE")
         response.setStatus(400, "bad request");
     else
@@ -245,7 +257,6 @@ void HTTPServer::eventLoop() {
 
     while (loop)
     {
-        std::cout << "LOOP" << std::endl; //linea da eliminare;
         int ret = poll(&pollfds[0], pollfds.size(), -1);
         if (ret < 0)
         {
@@ -312,19 +323,22 @@ void HTTPServer::eventLoop() {
                     {
                         // Add i dati letti al buffer persistente della connection
                         conn->getBuffer().append(buffer, n);
-                        std::cout << "Buffer for fd " << conn->getFd() << ": " << conn->getBuffer() << std::endl;
+                       // std::cout << "Buffer for fd " << conn->getFd() << ": " << conn->getBuffer() << std::endl;//debug
                         if (conn->hasCompleteRequest()) {
-                            // Qui, per semplicità, consideriamo l'intero buffer come una richiesta
                             std::string rawRequest = conn->getBuffer();
-                            std::cout << "complete request from fd " << conn->getFd() << ": " << rawRequest << std::endl;
+                           // std::cout << "complete request from fd " << conn->getFd() << ": " << rawRequest << std::endl;//richiesta completa
                         
+                        //FORSE QUI SERVE UNO SGUARDO
                         handleClientRequest(conn, rawRequest); // Processa la richiesta
                         /*Se il client non usa keep-alive, handleClientRequest ha chiuso il socket.
                         Se invece usa keep-alive, dovrai rimuovere solo la parte processata.
                         Qui, per semplicità, chiudiamo la connessione dopo aver inviato la risposta:
-                        In una versione avanzata, dovresti analizzare la richiesta e mantenere il buffer.*/
+                        In una versione avanzata, dovresti analizzare la richiesta e mantenere il buffer.
+                        la parte del buffer è stata implementata nella funzione handleClientRequest
+                        */ 
 
                         // Rimuoviamo il ClientConnection e il relativo pollfd.
+                        //GESTIONE KEEP ALIVE
                         for (size_t k = 0; k < pollfds.size(); ++k) 
                         {
                             if (pollfds[k].fd == conn->getFd()) 
