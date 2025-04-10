@@ -284,7 +284,7 @@ bool isPortValid(const std::string& Word, const std::vector<Server>& server)
 {
 	if (server.size() <= 1)
 	{
-		std::cout << "entrato nel controllo giusto--------------------------------------\n";
+		//std::cout << "entrato nel controllo giusto--------------------------------------\n";
 		return true;
 	}
 	int i = 0;
@@ -324,7 +324,7 @@ bool isWordValid(const std::string& Word, const std::vector<Location>& location)
 	if (location.size() == 0)
 		return true;
 	int i = 0;
-	while (location[i].path.back() != Word && i < static_cast<int>(location.size()))
+	while ( i < static_cast<int>(location.size()) && location[i].path.back() != Word)
 		i++;
 	if (i == static_cast<int>(location.size()))
 		return true;
@@ -703,8 +703,9 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
                 		file.close();
                 		return 0;
     		}
-			// std::cout << "look for =" << look_for << "sono uscito dallo switch\n";
-			 //std::cout << Word << " è la parola con cui sono uscito\n";
+			 //std::cout << "look for =" << look_for << "sono uscito dallo switch\n";
+			// std::cout << Word << " è la parola con cui sono uscito at line " << n_line << " \n";
+
         }
     }
 	//funzione che controlli non ci siano ripetizioni di server name
