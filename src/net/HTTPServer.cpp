@@ -62,8 +62,19 @@ void HTTPServer::handleGetRequest(const HTTPRequest& request, HTTPResponse& resp
     Server& server =  getServerByHost(request, _config);
     if(request.uri.size() == 1)
         filepath << server.root[0] << request.uri  << server.index[0];
-    else
-        filepath << server.root[0] << request.uri << "/" << server.index[0];//sistemare per sapere la location
+    else{
+        try{
+            std::cout << "get location by name" << std::endl;
+            Location& location = getLocationByName(request.uri, server);
+            std::cout << "founded location" << std::endl;
+            filepath << server.root[0] << request.uri << "/" << location.l_index[0];
+        }
+        catch(std::exception& e){
+            std::cout << e.what();
+            filepath << server.root[0] << request.uri << "/" << server.index[0];
+        }
+
+    }
     std::cout << "\t\tla path per il file da trovare" << filepath.str() << std::endl;
     try {
         std::string content = readFile(filepath.str());
@@ -153,9 +164,9 @@ void HTTPServer::handleClientRequest(ClientConnection *clientConn, const std::st
         response.setStatus(400, "bad request");
     else
         response.setStatus(200, "OK");
-    
+    //rimuovere else
     //gestione dei varii casi
-    //da gestire come nel get per i path della cgi
+    //da gestire come nel get per i path della cgi cgi deve gestire il body per il post??
     if (request.uri.find("cgi-bin") != std::string::npos){
         std::cout << "handle cgi request" << std::endl;
         CGIHandler cgi(request.uri);
@@ -326,7 +337,7 @@ void HTTPServer::eventLoop() {
                        // std::cout << "Buffer for fd " << conn->getFd() << ": " << conn->getBuffer() << std::endl;//debug
                         if (conn->hasCompleteRequest()) {
                             std::string rawRequest = conn->getBuffer();
-                           // std::cout << "complete request from fd " << conn->getFd() << ": " << rawRequest << std::endl;//richiesta completa
+                            std::cout << "complete request from fd " << conn->getFd() << ": " << rawRequest << std::endl;//richiesta completa
                         
                         //FORSE QUI SERVE UNO SGUARDO
                         handleClientRequest(conn, rawRequest); // Processa la richiesta

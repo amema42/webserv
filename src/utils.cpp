@@ -81,3 +81,13 @@ std::string CreateFileName(const HTTPRequest& request){
 }
 
 
+Location&  getLocationByName(std::string path, Server& server){
+    for(size_t i = 0; i < server.location.size(); i++){
+        if(server.location[i].path[0] == path){
+            return server.location[i];
+        }
+    }
+    throw std::runtime_error("no location founded");
+}
+
+
