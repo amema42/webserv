@@ -31,6 +31,7 @@ private:
     void handleClientRequest(ClientConnection *clientConn, const std::string &rawRequest);
     void handleGetRequest(const HTTPRequest& request, HTTPResponse& response);
     void handlePostRequest(const HTTPRequest& request, HTTPResponse& response);
+    void handleDeleteRequest(const HTTPRequest &request, HTTPResponse &response);
 };
 
 #endif
