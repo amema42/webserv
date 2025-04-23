@@ -13,14 +13,17 @@
 	The `www` directory will contain `index.html` and the corresponding location files.
 
 - **cose da ricordare**
-messa cgi funziona aggiungere controlli per la corretta gestione del path e dei tipi di file
 
---chiedere a matteo per la corretta configurazione di un file di config con le location messe per bene
-
-gestire le richieste post delete e get
-
-get: started working
-post: not started
+CGI: finished need testing
+get: finished need testing
+post: on working 
 delete: not started
 
-da fare delle pagine html piacevoli e farsi generare degli script in python
+GESTIONE DEL TIMEOUT
+qualche altro script in python?? per la CGI
+controllare i metodi allowed
+sarebbe utile implementare un ctrl c per spegnere tutto
+Allocazioni di memoria????
+le classi devono essere canonical ortodoxal??
+
+CONTROLLARE LO SHEET DI VALUTAZIONE

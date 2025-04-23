@@ -4,24 +4,6 @@
 #include "HTTPResponse.hpp"
 #include "ClientConnection.hpp"
 
-
-#include <sstream>
-#include <iostream>
-#include <stdexcept>
-#include <unistd.h>
-#include <fcntl.h>
-#include <vector>
-#include <cstring>
-#include <cstdlib>
-#include <poll.h>
-#include <cerrno>
-#include <algorithm>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <fcntl.h>
-#include <unistd.h>
-
 HTTPServer::HTTPServer(const Config &config) : _config(config) {
     initSockets();
 }
@@ -84,7 +66,6 @@ void HTTPServer::handleGetRequest(const HTTPRequest& request, HTTPResponse& resp
         filepath << server.root[0] << request.uri << "/" << server.index[0];//sistemare per sapere la location
     std::cout << "\t\tla path per il file da trovare" << filepath.str() << std::endl;
     try {
-        // std::string contentType = getMimeType(filePath); // Implementa mappa MIME vogliamo/dobbiamo farlo??
         std::string content = readFile(filepath.str());
         response.setStatus(200, "OK");
         response.body = content;
@@ -110,7 +91,18 @@ void HTTPServer::handlePostRequest(const HTTPRequest& request, HTTPResponse& res
     
     Server& server =  getServerByHost(request, _config);
     size_t i = std::strtol((getHeaderValue("Content-Length", request)).c_str(), NULL, 10);
-    // i <= server.max_body_size; controllo dimensioni!!
+    if(i > server.client_max_body_size[0]){
+        try{
+            std::string errorPath = server.getErrorPage("413");
+            std::string errorContent = readFile(errorPath);
+            response.body = errorContent;
+        }
+        catch(std::exception& e){
+            std::cout << e.what() <<std::endl;
+            response.body = "<html><body><h1>File Not Found</h1><p>default error page  error:413 a specific one are not provided in config file</p></body></html>";
+        }
+        return;
+    }
     
     std::string fileName = CreateFileName(request);
     std::string uploadDir = server.root[0] + "/uploads/";
@@ -125,13 +117,15 @@ void HTTPServer::handlePostRequest(const HTTPRequest& request, HTTPResponse& res
             }
             catch(std::exception& e){
                 std::cout << e.what() <<std::endl;
-                response.body = "<html><body><h1>File Not Found</h1><p>default error page a specific one are not provided in config file</p></body></html>";
+                response.body = "<html><body><h1>File Not Found</h1><p>default error page error:500 a specific one are not provided in config file</p></body></html>";
             }
             return;
         }
     }
     std::string fullpath = uploadDir + fileName;
+    //infos
     std::cout << fullpath << std::endl;
+    std::cout << "server max body size: " << server.client_max_body_size[0]<< " COntent size" << i << std::endl;
     //infos
     try {
         std::ofstream outFile(fullpath.c_str(), std::ios::binary);
@@ -144,18 +138,17 @@ void HTTPServer::handlePostRequest(const HTTPRequest& request, HTTPResponse& res
         response.setStatus(500, "Internal Server Error");
         response.body = "<html><body><h1>File upload failed</h1></body></html>";
     }
-    std::cout << "server max body size: " << server.client_max_body_size[0]<< i << std::endl;
     response.body = "<html><body><h1>Ciao, Mondo dal post!</h1></body></html>";
     //crateFile
 }
 
 void HTTPServer::handleClientRequest(ClientConnection *clientConn, const std::string &rawRequest) {
-    // 1. Creo un "oggetto" per il parsing della richiesta ed uno per la risposta!!!
+
     HTTPRequest request;
     HTTPResponse response;
     
     request.parseRequest(rawRequest);
-    // 2. Costruiamo la rispostaaaa
+    // Costruiamo la rispostaaaa
     if(request.method != "GET" && request.method != "POST" && request.method != "DELETE")
         response.setStatus(400, "bad request");
     else
@@ -203,6 +196,9 @@ void HTTPServer::handleClientRequest(ClientConnection *clientConn, const std::st
         std::cerr << "Errore in write(): " << strerror(errno) << std::endl;
     }
 
+
+//IMPOTATE CHIDERE AD ANI POTREBBE ESSERE QUI IL PROBLEMA DEL DOPPIO CLICK!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
     // After sending the response , closing the connection (***Va gestito keep-alive?***)
     //close(client_fd);
     /* bool keepAlive = false; r.114: part of: keep-alive connection implem. */ 
@@ -210,19 +206,29 @@ void HTTPServer::handleClientRequest(ClientConnection *clientConn, const std::st
     if (richiesta contiene "Connection: keep-alive" negli header) :NON chiudiamo la connessione
     else :chiudiamo la connessione
     */
+    
+    
+    
     bool keepAlive = false; 
-    std::map<std::string, std::string>::iterator it = request.headers.find("Connection");
-    if (it != request.headers.end()) {
-        std::string conn = it->second;
-        // Convert w. tolower to avoid case sensitivity 
-        for (size_t i = 0; i < conn.size(); ++i) {
-            conn[i] = tolower(conn[i]);
-        }
-        if (conn == "keep-alive")
-            keepAlive = true;
+    std::string conn = getHeaderValue("Connection", request); 
+    for (size_t i = 0; i < conn.size(); ++i) {
+        conn[i] = tolower(conn[i]);
     }
-
-    if (!keepAlive) {
+    if (conn == "keep-alive")
+        keepAlive = true;
+    if (keepAlive){
+        size_t headerEnd = rawRequest.find("\r\n\r\n");
+        size_t contentLength = 0;
+        
+        std::map<std::string, std::string>::iterator contentLengthIt = request.headers.find("Content-Length");
+        if (contentLengthIt != request.headers.end()) {
+            contentLength = atoi(contentLengthIt->second.c_str());
+        }
+        
+        size_t totalLength = headerEnd + 4 + contentLength; // 4 = lunghezza di "\r\n\r\n"
+        clientConn->removeProcessedRequest(totalLength);
+    }
+    else{
         // Chiudiamo la connessione se non è keep-alive && in caso di keep-alive dopo aver processato la richiesta, va rimossa dal buffer SOLO la parte processata.
         close(clientConn->getFd());
     }
@@ -311,41 +317,28 @@ void HTTPServer::eventLoop() {
                     }
                     if (!conn) continue;
 
-                    char buffer[1024];
+                    char buffer[4096];
                     ssize_t n = read(pollfds[i].fd, buffer, sizeof(buffer) - 1);
-                    if (n <= 0)
+                    if (n > 0)
                     {
-                        if (n < 0)
-                            std::cerr << "Error in read(): " << strerror(errno) << std::endl;
-                        else
-                            std::cout << "closing connection: fd " << pollfds[i].fd << std::endl;
-                        close(pollfds[i].fd);
-                        // Rimuovi il pollfd dalla lista + e l'oggetto ClientConnection
-                        pollfds.erase(pollfds.begin() + i);
-                        _clientConnections.erase(
-                            std::remove(_clientConnections.begin(), _clientConnections.end(), conn),
-                            _clientConnections.end());
-                        delete conn;
-                        --i;
-                    }
-                    else
-                    {
-                        buffer[n] = '\0';
                         // Add i dati letti al buffer persistente della connection
-                        conn->getBuffer().append(buffer);
-                        std::cout << "Buffer for fd " << conn->getFd() << ": " << conn->getBuffer() << std::endl;
+                        conn->getBuffer().append(buffer, n);
+                       // std::cout << "Buffer for fd " << conn->getFd() << ": " << conn->getBuffer() << std::endl;//debug
                         if (conn->hasCompleteRequest()) {
-                            // Qui, per semplicità, consideriamo l'intero buffer come una richiesta
                             std::string rawRequest = conn->getBuffer();
-                            std::cout << "complete request from fd " << conn->getFd() << ": " << rawRequest << std::endl;
+                           // std::cout << "complete request from fd " << conn->getFd() << ": " << rawRequest << std::endl;//richiesta completa
                         
+                        //FORSE QUI SERVE UNO SGUARDO
                         handleClientRequest(conn, rawRequest); // Processa la richiesta
                         /*Se il client non usa keep-alive, handleClientRequest ha chiuso il socket.
                         Se invece usa keep-alive, dovrai rimuovere solo la parte processata.
                         Qui, per semplicità, chiudiamo la connessione dopo aver inviato la risposta:
-                        In una versione avanzata, dovresti analizzare la richiesta e mantenere il buffer.*/
+                        In una versione avanzata, dovresti analizzare la richiesta e mantenere il buffer.
+                        la parte del buffer è stata implementata nella funzione handleClientRequest
+                        */ 
 
                         // Rimuoviamo il ClientConnection e il relativo pollfd.
+                        //GESTIONE KEEP ALIVE
                         for (size_t k = 0; k < pollfds.size(); ++k) 
                         {
                             if (pollfds[k].fd == conn->getFd()) 
@@ -357,19 +350,37 @@ void HTTPServer::eventLoop() {
                         _clientConnections.erase(
                             std::remove(_clientConnections.begin(), _clientConnections.end(), conn),
                             _clientConnections.end());
-                        delete conn;
+                            delete conn;
                             //l'indice per la rimozione
                         --i;
-
+                        }
+                    }
+                    if (n <= 0)
+                    {
+                        if (n < 0){
+                            if (errno == EAGAIN || errno == EWOULDBLOCK) 
+                                std::cout << "waiting" << std::endl;
+                            else
+                                std::cerr << "Error in read(): " << strerror(errno) << std::endl;
+                        }
+                        else
+                            std::cout << "closing connection: fd " << pollfds[i].fd << std::endl;
+                        close(pollfds[i].fd);
+                        // Rimuovi il pollfd dalla lista + e l'oggetto ClientConnection
+                        pollfds.erase(pollfds.begin() + i);
+                        _clientConnections.erase(
+                            std::remove(_clientConnections.begin(), _clientConnections.end(), conn),
+                            _clientConnections.end());
+                        delete conn;
+                        --i;
                     }
                 }
             }
         }
     }
 }
-}
+
 void HTTPServer::run() {
-    // Start loop degli eventi
     eventLoop();
 }
 
