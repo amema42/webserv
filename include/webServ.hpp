@@ -70,6 +70,8 @@
 #define L_CGI_EXTENSION_ARG 5121 //1 arg
 #define L_UPLOAD_STORE_ARG 5131 // 1 arg
 #define L_CLIENT_MAX_BODY_SIZE 5071 //1 arg
+#define REDIRECTION 5302 //Return 2 arg
+#define AUTOINDEX 5001 //1 ARG
 
 bool endsWithSemicolon(const std::string& word);
 bool insertArgInField(std::string& Word, int look_for, std::vector<std::string>& args, int n_line);

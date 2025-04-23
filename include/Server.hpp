@@ -10,7 +10,6 @@ class Location;
 class Server
 {
     private:
-        std::string type;
         std::vector<int> numbers;
 
     public:
