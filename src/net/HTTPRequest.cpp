@@ -18,6 +18,8 @@ bool HTTPRequest::isChunked() const {
     }
     return false;
 }
+
+
 // --- rawRequest: stringa contenente la richiesta HTTP ( *presumibilmente* ) ---
 void HTTPRequest::parseRequest(const std::string &rawRequest) {
     // Cerca la fine degli header: "\r\n\r\n"
@@ -68,23 +70,21 @@ void HTTPRequest::parseRequest(const std::string &rawRequest) {
     }
 
     // --- Body ---
-    // Se è presente un header Content-Length, assicuriamoci di avere quel numero di byte
     std::map<std::string, std::string>::iterator it = headers.find("Content-Length");
+    //questo è un doppio controllo client connection si occupa di controllare la richiesta
+    //ma lo lasciamo per sicurezza
+
     if (it != headers.end()) {
         int contentLength = std::atoi(it->second.c_str());
-        // Se il body letto è inferiore a Content-Length, in una implementazione reale, 
-        // attendi ulteriori dati. Per ora, assumiamo che rawRequest contenga tutto.
         if (static_cast<int>(bodyPart.size()) >= contentLength)
             body = bodyPart.substr(0, contentLength);
         else
             body = bodyPart;  // oppure gestire l'errore
-    } else if (isChunked()) {
-        // Se la richiesta è chunked, bisogna implementare il parsing dei chunk
-        // Per ora, potresti salvare l'intero body e implementare il parsing chunked in seguito
-        body = bodyPart;
-        // In seguito, decodificherai il body chunked in una funzione apposita
-    } else {
-        // Altrimenti, assegna il body (se presente) così com'è
+    }
+    else if (isChunked()) {
+        // non gestiamo le richieste chunked per davvero
         body = bodyPart;
     }
+    else
+        body = bodyPart;
 }

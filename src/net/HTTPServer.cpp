@@ -98,7 +98,7 @@ void HTTPServer::handleGetRequest(const HTTPRequest& request, HTTPResponse& resp
     return;
 }
 
-void HTTPServer::handlePostRequest(const HTTPRequest& request, HTTPResponse& response){
+void HTTPServer::handlePostRequest(HTTPRequest& request, HTTPResponse& response){
     
     Server& server =  getServerByHost(request, _config);
     size_t i = std::strtol((getHeaderValue("Content-Length", request)).c_str(), NULL, 10);
@@ -339,31 +339,31 @@ void HTTPServer::eventLoop() {
                             std::string rawRequest = conn->getBuffer();
                             std::cout << "complete request from fd " << conn->getFd() << ": " << rawRequest << std::endl;//richiesta completa
                         
-                        //FORSE QUI SERVE UNO SGUARDO
-                        handleClientRequest(conn, rawRequest); // Processa la richiesta
-                        /*Se il client non usa keep-alive, handleClientRequest ha chiuso il socket.
-                        Se invece usa keep-alive, dovrai rimuovere solo la parte processata.
-                        Qui, per semplicità, chiudiamo la connessione dopo aver inviato la risposta:
-                        In una versione avanzata, dovresti analizzare la richiesta e mantenere il buffer.
-                        la parte del buffer è stata implementata nella funzione handleClientRequest
-                        */ 
-
-                        // Rimuoviamo il ClientConnection e il relativo pollfd.
-                        //GESTIONE KEEP ALIVE
-                        for (size_t k = 0; k < pollfds.size(); ++k) 
-                        {
-                            if (pollfds[k].fd == conn->getFd()) 
+                            //FORSE QUI SERVE UNO SGUARDO
+                            handleClientRequest(conn, rawRequest); // Processa la richiesta
+                            /*Se il client non usa keep-alive, handleClientRequest ha chiuso il socket.
+                            Se invece usa keep-alive, dovrai rimuovere solo la parte processata.
+                            Qui, per semplicità, chiudiamo la connessione dopo aver inviato la risposta:
+                            In una versione avanzata, dovresti analizzare la richiesta e mantenere il buffer.
+                            la parte del buffer è stata implementata nella funzione handleClientRequest
+                            */ 
+                            
+                            // Rimuoviamo il ClientConnection e il relativo pollfd.
+                            //GESTIONE KEEP ALIVE
+                            for (size_t k = 0; k < pollfds.size(); ++k) 
                             {
-                                pollfds.erase(pollfds.begin() + k);
-                                break;
+                                if (pollfds[k].fd == conn->getFd()) 
+                                {
+                                    pollfds.erase(pollfds.begin() + k);
+                                    break;
+                                }
                             }
-                        }
-                        _clientConnections.erase(
-                            std::remove(_clientConnections.begin(), _clientConnections.end(), conn),
-                            _clientConnections.end());
-                            delete conn;
-                            //l'indice per la rimozione
-                        --i;
+                            _clientConnections.erase(
+                                std::remove(_clientConnections.begin(), _clientConnections.end(), conn),
+                                _clientConnections.end());
+                                delete conn;
+                                //l'indice per la rimozione
+                            --i;
                         }
                     }
                     if (n <= 0)

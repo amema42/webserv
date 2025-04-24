@@ -30,7 +30,7 @@ private:
     // logica rimane simile, ma va verificata la presenza dell'header Connection: keep-alive.
     void handleClientRequest(ClientConnection *clientConn, const std::string &rawRequest);
     void handleGetRequest(const HTTPRequest& request, HTTPResponse& response);
-    void handlePostRequest(const HTTPRequest& request, HTTPResponse& response);
+    void handlePostRequest(HTTPRequest& request, HTTPResponse& response);
 };
 
 #endif
