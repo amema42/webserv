@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   webServ.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jacopo <jacopo@student.42.fr>              +#+  +:+       +#+        */
+/*   By: amema <amema@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/19 15:06:40 by jacopo            #+#    #+#             */
-/*   Updated: 2025/04/04 16:47:31 by jacopo           ###   ########.fr       */
+/*   Updated: 2025/04/24 18:34:35 by amema            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,7 +49,7 @@
 #include "./HTTPServer.hpp"
 #include "Tokenizer.hpp"
 
-// #define SIZE_MAX 18446744073709551615UL
+#define SIZE_MAX 18446744073709551615UL
 #define ERROR 0
 #define SERVER 1
 #define OPEN_S_BRACKET 7
