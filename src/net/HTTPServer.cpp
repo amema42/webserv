@@ -142,6 +142,90 @@ void HTTPServer::handlePostRequest(const HTTPRequest& request, HTTPResponse& res
     //crateFile
 }
 
+void HTTPServer::handleDeleteRequest(const HTTPRequest &request, HTTPResponse &response) {
+    // 1) Serverconf
+    Server& server = getServerByHost(request, _config);
+
+    // 403 Forbidden se il percorso contiene => ".." (per evitare """traversals""")
+    if (request.uri.find("..") != std::string::npos) {
+        response.setStatus(403, "Forbidden");
+        response.body = "<html><body><h1>403 Forbidden</h1>"
+                        "<p>Il percorso richiesto non &egrave; consentito.</p>"
+                        "</body></html>";
+        return;
+    }
+
+    // Se DELETE è consentito solo su /uploads/, verifica il """prefix""" dell'URI
+    const std::string prefix = "/uploads/";
+    if (request.uri.compare(0, prefix.size(), prefix) != 0) {
+        response.setStatus(403, "Forbidden");
+        response.body = "<html><body><h1>403 Forbidden</h1>"
+                        "<p>Accesso non autorizzato all'URI.</p>"
+                        "</body></html>";
+        return;
+    }
+
+    // Build the full path to the file
+    std::string fullpath = server.root[0] + request.uri;
+    std::cout << "[DELETE] fullpath = " << fullpath << std::endl;
+
+    // Verifica che il file esista && il file è regolare
+    struct stat fileStat;
+    if (stat(fullpath.c_str(), &fileStat) != 0) {
+        // File not found = 404
+        response.setStatus(404, "Not Found");
+        try {
+            std::string errorPage = server.getErrorPage("404");
+            response.body = readFile(errorPage);
+        } catch (...) {
+            response.body = "<html><body><h1>404 Not Found</h1>"
+                            "<p>Il file non esiste.</p>"
+                            "</body></html>";
+        }
+        return;
+    }
+    if (!S_ISREG(fileStat.st_mode)) {
+        // Non è un file regolare (es. dir)
+        response.setStatus(403, "Forbidden");
+        response.body = "<html><body><h1>403 Forbidden</h1>"
+                        "<p>Non &egrave; possibile eliminare una directory.</p>"
+                        "</body></html>";
+        return;
+    }
+
+    if (remove(fullpath.c_str()) != 0) {
+        // Errore nella rimozione: log di debug (opzione -g su Makefile)
+        std::cerr << "[DELETE] remove() failed: " << std::strerror(errno) << std::endl;
+
+        // Differenzia tra file non trovato (ENOENT) e altri errori
+        if (errno == ENOENT) {
+            response.setStatus(404, "Not Found");
+        } else {
+            response.setStatus(500, "Internal Server Error");
+        }
+        try {
+            // Carica la pagina di errore corrispondente (404 o 500)
+            std::string code;
+            if (errno == ENOENT) {
+                code = "404";
+            } else {
+                code = "500";
+            }
+            std::string errorPage = server.getErrorPage(code);
+            response.body = readFile(errorPage);
+        } catch (...) {
+            response.body = "<html><body><h1>Errore</h1>"
+                            "<p>Impossibile completare l'eliminazione del file.</p>"
+                            "</body></html>";
+        }
+        return;
+    }
+
+    // 200 => OK!
+    response.setStatus(200, "OK");
+    response.body = "<html><body><h1>File eliminato con successo</h1></body></html>";
+}
+
 void HTTPServer::handleClientRequest(ClientConnection *clientConn, const std::string &rawRequest) {
 
     HTTPRequest request;
@@ -176,9 +260,13 @@ void HTTPServer::handleClientRequest(ClientConnection *clientConn, const std::st
         std::cout<< "handle POST request" << std::endl;
         handlePostRequest(request, response);
     }
-    else {
+    // else {
+    //     std::cout << "handle DELETE request" << std::endl;
+    //     response.body = "<html><body><h1>Ciao, Mondo!</h1></body></html>";
+    // }
+    else if (request.method == "DELETE") {
         std::cout << "handle DELETE request" << std::endl;
-        response.body = "<html><body><h1>Ciao, Mondo!</h1></body></html>";
+        handleDeleteRequest(request, response);
     }
 
     response.setHeader("Content-Type", "text/html");//setteare l'header in base alla risposta da dare
