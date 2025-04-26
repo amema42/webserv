@@ -49,7 +49,7 @@
 #include "./HTTPServer.hpp"
 #include "Tokenizer.hpp"
 
-#define SIZE_MAX 18446744073709551615UL
+//#define SIZE_MAX 18446744073709551615UL
 #define ERROR 0
 #define SERVER 1
 #define OPEN_S_BRACKET 7

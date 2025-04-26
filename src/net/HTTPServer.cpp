@@ -57,34 +57,81 @@ void HTTPServer::initSockets() {
     }
 }
 
+// void HTTPServer::handleGetRequest(const HTTPRequest& request, HTTPResponse& response) {
+//     std::stringstream filepath;
+//     Server& server =  getServerByHost(request, _config);
+//     if(request.uri.size() == 1)
+//         filepath << server.root[0] << request.uri  << server.index[0];
+//     else
+//         filepath << server.root[0] << request.uri << "/" << server.index[0];//sistemare per sapere la location
+//     std::cout << "\t\tla path per il file da trovare" << filepath.str() << std::endl;
+//     try {
+//         std::string content = readFile(filepath.str());
+//         response.setStatus(200, "OK");
+//         response.body = content;
+//     }
+//     catch (std::exception& e){
+//         std::cout << e.what() << std::endl;
+//         response.setStatus(404, "Not Found");
+//         try{
+//             std::string errorPath = server.getErrorPage("404");
+//             std::string errorContent = readFile(errorPath);
+//             response.body = errorContent;
+//         }
+//         catch(std::exception& e){
+//             std::cout << e.what() <<std::endl;
+//             response.body = "<html><body><h1>File Not Found</h1><p>default error page a specific one are not provided in config file</p></body></html>";
+//         }
+//         return;
+//     }
+//     return;
+// }
+
 void HTTPServer::handleGetRequest(const HTTPRequest& request, HTTPResponse& response) {
-    std::stringstream filepath;
-    Server& server =  getServerByHost(request, _config);
-    if(request.uri.size() == 1)
-        filepath << server.root[0] << request.uri  << server.index[0];
-    else
-        filepath << server.root[0] << request.uri << "/" << server.index[0];//sistemare per sapere la location
-    std::cout << "\t\tla path per il file da trovare" << filepath.str() << std::endl;
+    Server& server = getServerByHost(request, _config);
+
+    // 1) Costruisci il path di partenza
+    std::string fullpath = server.root[0] + request.uri;
+    std::cout << "\t\t[GET] base path: " << fullpath << std::endl;
+
+    // 2) Stat per capire se è directory
+    struct stat st;
+    if (stat(fullpath.c_str(), &st) == 0 && S_ISDIR(st.st_mode)) {
+        // Se è directory, assicuriamoci di avere lo slash finale
+        if (request.uri.back() != '/')
+        {
+            response.setStatus(301, "Moved Permanently");
+            //fullpath += '/';
+            response.setHeader("Location", request.uri + "/");
+            return;
+        }
+        fullpath += server.index[0];
+        std::cout << "\t\t[GET] directory → path: " << fullpath << std::endl;
+    }
+
+    // 3) Prova a leggere il file (sia che fosse file diretto, sia index.html)
     try {
-        std::string content = readFile(filepath.str());
+        std::string content = readFile(fullpath);
         response.setStatus(200, "OK");
         response.body = content;
     }
-    catch (std::exception& e){
-        std::cout << e.what() << std::endl;
+    catch (std::exception& e)
+    {
+        std::cerr << "[GET] errore readFile: " << e.what() << std::endl;
         response.setStatus(404, "Not Found");
-        try{
-            std::string errorPath = server.getErrorPage("404");
-            std::string errorContent = readFile(errorPath);
-            response.body = errorContent;
+        try 
+        {
+            // pagina di errore da config
+            std::string errorPage = server.getErrorPage("404");
+            response.body = readFile(errorPage);
+        } catch (...) 
+        {
+            // fallback
+            response.body = "<html><body><h1>404 Not Found</h1>"
+                            "<p>File not found!.</p>"
+                            "</body></html>";
         }
-        catch(std::exception& e){
-            std::cout << e.what() <<std::endl;
-            response.body = "<html><body><h1>File Not Found</h1><p>default error page a specific one are not provided in config file</p></body></html>";
-        }
-        return;
     }
-    return;
 }
 
 void HTTPServer::handlePostRequest(const HTTPRequest& request, HTTPResponse& response){
@@ -285,7 +332,6 @@ void HTTPServer::handleClientRequest(ClientConnection *clientConn, const std::st
     }
 
 
-//IMPOTATE CHIDERE AD ANI POTREBBE ESSERE QUI IL PROBLEMA DEL DOPPIO CLICK!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     // After sending the response , closing the connection (***Va gestito keep-alive?***)
     //close(client_fd);
@@ -297,29 +343,30 @@ void HTTPServer::handleClientRequest(ClientConnection *clientConn, const std::st
     
     
     
-    bool keepAlive = false; 
-    std::string conn = getHeaderValue("Connection", request); 
-    for (size_t i = 0; i < conn.size(); ++i) {
-        conn[i] = tolower(conn[i]);
-    }
-    if (conn == "keep-alive")
-        keepAlive = true;
-    if (keepAlive){
-        size_t headerEnd = rawRequest.find("\r\n\r\n");
-        size_t contentLength = 0;
+    // bool keepAlive = false; 
+    // std::string conn = getHeaderValue("Connection", request); 
+    // for (size_t i = 0; i < conn.size(); ++i) {
+    //     conn[i] = tolower(conn[i]);
+    // }
+    // if (conn == "keep-alive")
+    //     keepAlive = true;
+    // if (keepAlive){
+    //     size_t headerEnd = rawRequest.find("\r\n\r\n");
+    //     size_t contentLength = 0;
         
-        std::map<std::string, std::string>::iterator contentLengthIt = request.headers.find("Content-Length");
-        if (contentLengthIt != request.headers.end()) {
-            contentLength = atoi(contentLengthIt->second.c_str());
-        }
+    //     std::map<std::string, std::string>::iterator contentLengthIt = request.headers.find("Content-Length");
+    //     if (contentLengthIt != request.headers.end()) {
+    //         contentLength = atoi(contentLengthIt->second.c_str());
+    //     }
         
-        size_t totalLength = headerEnd + 4 + contentLength; // 4 = lunghezza di "\r\n\r\n"
-        clientConn->removeProcessedRequest(totalLength);
-    }
-    else{
-        // Chiudiamo la connessione se non è keep-alive && in caso di keep-alive dopo aver processato la richiesta, va rimossa dal buffer SOLO la parte processata.
-        close(clientConn->getFd());
-    }
+    //     size_t totalLength = headerEnd + 4 + contentLength; // 4 = lunghezza di "\r\n\r\n"
+    //     clientConn->removeProcessedRequest(totalLength);
+    // }
+    // else{
+    //     // Chiudiamo la connessione se non è keep-alive && in caso di keep-alive dopo aver processato la richiesta, va rimossa dal buffer SOLO la parte processata.
+    //     close(clientConn->getFd());
+    // }
+    close(clientConn->getFd());
 
 }
 
