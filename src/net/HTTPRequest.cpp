@@ -9,6 +9,7 @@ HTTPRequest::HTTPRequest() {
 HTTPRequest::~HTTPRequest() {
 }
 
+
 bool HTTPRequest::isChunked() const {
     std::map<std::string, std::string>::const_iterator it = headers.find("Transfer-Encoding");
     if (it != headers.end()) {

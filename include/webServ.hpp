@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   webServ.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jacopo <jacopo@student.42.fr>              +#+  +:+       +#+        */
+/*   By: mcamilli <mcamilli@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/19 15:06:40 by jacopo            #+#    #+#             */
-/*   Updated: 2025/04/04 16:47:31 by jacopo           ###   ########.fr       */
+/*   Updated: 2025/04/28 01:31:34 by mcamilli         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 
 
 //include all the library here pls 
-
+#include <dirent.h>
 #include <sstream>
 #include <iostream>
 #include <stdexcept>
