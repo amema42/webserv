@@ -725,6 +725,8 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
 							break;
 						}
 						servers.back().location.back().autoindex = Word.substr(0, Word.size() - 1);
+						if (servers.back().location.back().autoindex == "on")
+							servers.back().location.back().autoindex_flag = true;
 						break;
 					}
 					case L_INDEX_ARG:

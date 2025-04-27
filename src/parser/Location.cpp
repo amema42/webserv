@@ -2,6 +2,7 @@
 
 Location::Location()
 {
+	autoindex_flag = false;
     std::cout << "Location default constructor" << std::endl;
     numbers.push_back(L_ROOT_ARG);
     numbers.push_back(L_INDEX_ARG);
@@ -18,7 +19,7 @@ Location::~Location()
     return;
 }
 
-Location::Location(const Location &inst) : autoindex(inst.autoindex), numbers(inst.numbers), l_root(inst.l_root), l_index(inst.l_index), l_methods(inst.l_methods), l_upload_store(inst.l_upload_store), l_client_max_body_size(inst.l_client_max_body_size), redirect_page(inst.redirect_page)
+Location::Location(const Location &inst) : autoindex_flag(inst.autoindex_flag), autoindex(inst.autoindex), numbers(inst.numbers), l_root(inst.l_root), l_index(inst.l_index), l_methods(inst.l_methods), l_upload_store(inst.l_upload_store), l_client_max_body_size(inst.l_client_max_body_size), redirect_page(inst.redirect_page)
 {
     std::cout << "Location copy constructor" << std::endl;
     return;
@@ -28,6 +29,7 @@ Location &Location::operator=(const Location &inst)
 {
     if (this != &inst) 
 	{
+		autoindex_flag = inst.autoindex_flag;
         autoindex = inst.autoindex;
         numbers = inst.numbers;
         path = inst.path;

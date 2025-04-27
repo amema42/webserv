@@ -8,6 +8,7 @@ class Location
     private:
         
     public:
+		bool autoindex_flag;
 		std::string autoindex;
         std::vector<int> numbers;
 		std::vector<std::string> path;
