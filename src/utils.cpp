@@ -63,32 +63,21 @@ std::string generateUniqueFilename(std::string suffix) {
 }
 
 std::string handleMultipartBody(std::string body) {
-    // Trova il boundary dalla prima linea
     size_t firstLineEnd = body.find("\r\n");
     if (firstLineEnd == std::string::npos) {
-        return ""; // Body malformato
+        return "";
     }
-    
+    //potrebbe non servire
     std::string boundary = body.substr(0, firstLineEnd);
-    
-    // Trova l'inizio dei dati (dopo gli header e una linea vuota)
     size_t headerEnd = body.find("\r\n\r\n");
     if (headerEnd == std::string::npos) {
         return ""; // Header malformati
     }
-    
-    // Avanza l'indice dopo il separatore degli header
-    size_t contentStart = headerEnd + 4; // +4 per saltare "\r\n\r\n"
-    
-    // Trova la fine del contenuto (inizio del boundary di chiusura)
+    size_t contentStart = headerEnd + 4; 
     size_t contentEnd = body.find("\r\n" + boundary, contentStart);
     if (contentEnd == std::string::npos) {
-        // Se non troviamo un boundary di chiusura, potrebbe essere l'ultimo chunk
-        // o un body incompleto, prendiamo tutto fino alla fine
         return body.substr(contentStart);
     }
-    
-    // Estrai solo il contenuto tra la fine degli header e l'inizio del boundary di chiusura
     return body.substr(contentStart, contentEnd - contentStart);
 }
 
