@@ -4,49 +4,46 @@
 #include "HTTPResponse.hpp"
 #include "ClientConnection.hpp"
 
+// Constructor: inizializza config e socket di ascolto
 HTTPServer::HTTPServer(const Config &config) : _config(config) {
     initSockets();
 }
 
+// Distruttore: chiude i socket di ascolto
 HTTPServer::~HTTPServer() {
-    // Close * i socket di ascolto
-    for (size_t i = 0; i < _listenSockets.size(); ++i) {
+    // close listen sockets
+    for (size_t i = 0; i < _listenSockets.size(); ++i) { // ciclo sui listen socket
         close(_listenSockets[i]);
     }
 }
 
+// Funzione per inizializzare i socket in base ai server configurati
 void HTTPServer::initSockets() {
-    // Per ogni **ServerConfig**, crea un socket e configuralo in modalità "non bloccante".
-    // Se nel file di configurazione hai più server, vanno gestite eventuali duplicazioni di host:port (like subject specifies: il primo per **host:port** è quello di default).
-    for (size_t i = 0; i < (*_config.servers).size(); ++i) {
+    // inizializzazione dei socket
+    for (size_t i = 0; i < (*_config.servers).size(); ++i) { // ciclo sui server configurati
         const Server &server = (*_config.servers)[i];
 
         int sockfd = socket(AF_INET, SOCK_STREAM, 0);
         if (sockfd < 0)
             throw std::runtime_error("Error in socket creation.");
 
-        // Configura il socket in modalità non bloccante e imposta FD_CLOEXEC
         int flags = fcntl(sockfd, F_GETFL, 0);
         if (flags < 0)
             throw std::runtime_error("Errore in fcntl F_GETFL");
         if (fcntl(sockfd, F_SETFL, flags | O_NONBLOCK) < 0)
             throw std::runtime_error("Errore in fcntl F_SETFL");
 
-        // Configura l'indirizzo
         sockaddr_in addr;
         addr.sin_family = AF_INET;
         addr.sin_port = htons(server.listen[0]);
-        addr.sin_addr.s_addr = INADDR_ANY;  // Per semplicità possiamo gestire host specifici in base a server.host 
-                                            //(if server.host == "a specific host") do something specific {else} if(server.host == "a specific host") do something else
+        addr.sin_addr.s_addr = INADDR_ANY;
         memset(addr.sin_zero, 0, sizeof(addr.sin_zero));
 
-        // Lega il socket
         if (bind(sockfd, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
             close(sockfd);
             throw std::runtime_error("Error binding socket.");
         }
 
-        // Inizia ad ascoltare
         if (listen(sockfd, 128) < 0) {
             close(sockfd);
             throw std::runtime_error("Error in listen().");
@@ -57,51 +54,21 @@ void HTTPServer::initSockets() {
     }
 }
 
-// void HTTPServer::handleGetRequest(const HTTPRequest& request, HTTPResponse& response) {
-//     std::stringstream filepath;
-//     Server& server =  getServerByHost(request, _config);
-//     if(request.uri.size() == 1)
-//         filepath << server.root[0] << request.uri  << server.index[0];
-//     else
-//         filepath << server.root[0] << request.uri << "/" << server.index[0];//sistemare per sapere la location
-//     std::cout << "\t\tla path per il file da trovare" << filepath.str() << std::endl;
-//     try {
-//         std::string content = readFile(filepath.str());
-//         response.setStatus(200, "OK");
-//         response.body = content;
-//     }
-//     catch (std::exception& e){
-//         std::cout << e.what() << std::endl;
-//         response.setStatus(404, "Not Found");
-//         try{
-//             std::string errorPath = server.getErrorPage("404");
-//             std::string errorContent = readFile(errorPath);
-//             response.body = errorContent;
-//         }
-//         catch(std::exception& e){
-//             std::cout << e.what() <<std::endl;
-//             response.body = "<html><body><h1>File Not Found</h1><p>default error page a specific one are not provided in config file</p></body></html>";
-//         }
-//         return;
-//     }
-//     return;
-// }
-
+// Gestisce le richieste GET
 void HTTPServer::handleGetRequest(const HTTPRequest& request, HTTPResponse& response) {
+    // seleziona il server in base all'host della richiesta
     Server& server = getServerByHost(request, _config);
 
-    // 1) Costruisci il path di partenza
     std::string fullpath = server.root[0] + request.uri;
     std::cout << "\t\t[GET] base path: " << fullpath << std::endl;
 
-    // 2) Stat per capire se è directory
     struct stat st;
+    // verifica se il path è una directory
     if (stat(fullpath.c_str(), &st) == 0 && S_ISDIR(st.st_mode)) {
         // Se è directory, assicuriamoci di avere lo slash finale
         if (request.uri[request.uri.size() - 1] != '/')
         {
             response.setStatus(301, "Moved Permanently");
-            //fullpath += '/';
             response.setHeader("Location", request.uri + "/");
             return;
         }
@@ -109,7 +76,6 @@ void HTTPServer::handleGetRequest(const HTTPRequest& request, HTTPResponse& resp
         std::cout << "\t\t[GET] directory → path: " << fullpath << std::endl;
     }
 
-    // 3) Prova a leggere il file (sia che fosse file diretto, sia index.html)
     try {
         std::string content = readFile(fullpath);
         response.setStatus(200, "OK");
@@ -121,12 +87,10 @@ void HTTPServer::handleGetRequest(const HTTPRequest& request, HTTPResponse& resp
         response.setStatus(404, "Not Found");
         try 
         {
-            // pagina di errore da config
             std::string errorPage = server.getErrorPage("404");
             response.body = readFile(errorPage);
         } catch (...) 
         {
-            // fallback
             response.body = "<html><body><h1>404 Not Found</h1>"
                             "<p>File not found!.</p>"
                             "</body></html>";
@@ -136,6 +100,7 @@ void HTTPServer::handleGetRequest(const HTTPRequest& request, HTTPResponse& resp
 
 void HTTPServer::handlePostRequest(HTTPRequest& request, HTTPResponse& response){
     
+    // seleziona il server in base all'host della richiesta
     Server& server =  getServerByHost(request, _config);
     size_t i = std::strtol((getHeaderValue("Content-Length", request)).c_str(), NULL, 10);
     if(i > server.client_max_body_size[0]){
@@ -154,6 +119,7 @@ void HTTPServer::handlePostRequest(HTTPRequest& request, HTTPResponse& response)
     std::string fileName = CreateFileName(request);
     std::string uploadDir = server.root[0] + "/uploads/";
     struct stat st;
+    // verifica se la directory uploads esiste, altrimenti la crea
     if (stat(uploadDir.c_str(), &st) == -1) {
         if (mkdir(uploadDir.c_str(), 0755) == -1) {
             response.setStatus(500, "Internal Server Error");
@@ -170,10 +136,8 @@ void HTTPServer::handlePostRequest(HTTPRequest& request, HTTPResponse& response)
         }
     }
     std::string fullpath = uploadDir + fileName;
-    //infos
     std::cout << fullpath << std::endl;
     std::cout << "server max body size: " << server.client_max_body_size[0]<< " COntent size" << i << std::endl;
-    //infos
     try {
         std::ofstream outFile(fullpath.c_str(), std::ios::binary);
         outFile.write(request.body.data(), request.body.size());
@@ -186,14 +150,14 @@ void HTTPServer::handlePostRequest(HTTPRequest& request, HTTPResponse& response)
         response.body = "<html><body><h1>File upload failed</h1></body></html>";
     }
     response.body = "<html><body><h1>Ciao, Mondo dal post!</h1></body></html>";
-    //crateFile
 }
 
+// Gestisce le richieste DELETE
 void HTTPServer::handleDeleteRequest(const HTTPRequest &request, HTTPResponse &response) {
-    // 1) Serverconf
+    // seleziona il server in base all'host della richiesta
     Server& server = getServerByHost(request, _config);
 
-    // 403 Forbidden se il percorso contiene => ".." (per evitare """traversals""")
+    // evita percorsi che contengono '..'
     if (request.uri.find("..") != std::string::npos) {
         response.setStatus(403, "Forbidden");
         response.body = "<html><body><h1>403 Forbidden</h1>"
@@ -202,8 +166,8 @@ void HTTPServer::handleDeleteRequest(const HTTPRequest &request, HTTPResponse &r
         return;
     }
 
-    // Se DELETE è consentito solo su /uploads/, verifica il """prefix""" dell'URI
     const std::string prefix = "/uploads/";
+    // controlla se l'URI inizia con /uploads/
     if (request.uri.compare(0, prefix.size(), prefix) != 0) {
         response.setStatus(403, "Forbidden");
         response.body = "<html><body><h1>403 Forbidden</h1>"
@@ -212,14 +176,12 @@ void HTTPServer::handleDeleteRequest(const HTTPRequest &request, HTTPResponse &r
         return;
     }
 
-    // Build the full path to the file
     std::string fullpath = server.root[0] + request.uri;
     std::cout << "[DELETE] fullpath = " << fullpath << std::endl;
 
-    // Verifica che il file esista && il file è regolare
     struct stat fileStat;
+    // verifica esistenza del file
     if (stat(fullpath.c_str(), &fileStat) != 0) {
-        // File not found = 404
         response.setStatus(404, "Not Found");
         try {
             std::string errorPage = server.getErrorPage("404");
@@ -231,8 +193,8 @@ void HTTPServer::handleDeleteRequest(const HTTPRequest &request, HTTPResponse &r
         }
         return;
     }
+    // controllo: il path è un file regolare, non una directory
     if (!S_ISREG(fileStat.st_mode)) {
-        // Non è un file regolare (es. dir)
         response.setStatus(403, "Forbidden");
         response.body = "<html><body><h1>403 Forbidden</h1>"
                         "<p>Non &egrave; possibile eliminare una directory.</p>"
@@ -240,18 +202,16 @@ void HTTPServer::handleDeleteRequest(const HTTPRequest &request, HTTPResponse &r
         return;
     }
 
+    // tentativo di rimozione del file
     if (remove(fullpath.c_str()) != 0) {
-        // Errore nella rimozione: log di debug (opzione -g su Makefile)
         std::cerr << "[DELETE] remove() failed: " << std::strerror(errno) << std::endl;
 
-        // Differenzia tra file non trovato (ENOENT) e altri errori
         if (errno == ENOENT) {
             response.setStatus(404, "Not Found");
         } else {
             response.setStatus(500, "Internal Server Error");
         }
         try {
-            // Carica la pagina di errore corrispondente (404 o 500)
             std::string code;
             if (errno == ENOENT) {
                 code = "404";
@@ -268,257 +228,181 @@ void HTTPServer::handleDeleteRequest(const HTTPRequest &request, HTTPResponse &r
         return;
     }
 
-    // 200 => OK!
     response.setStatus(200, "OK");
     response.body = "<html><body><h1>File eliminato con successo</h1></body></html>";
 }
 
-void HTTPServer::handleClientRequest(ClientConnection *clientConn, const std::string &rawRequest) {
-
-    HTTPRequest request;
+// Gestisce una singola richiesta del client
+bool HTTPServer::handleClientRequest(ClientConnection *clientConn, const std::string &rawRequest) {
+    HTTPRequest  request;
     HTTPResponse response;
-    
+
     request.parseRequest(rawRequest);
-    // Costruiamo la rispostaaaa
-    if(request.method != "GET" && request.method != "POST" && request.method != "DELETE")
-        response.setStatus(400, "bad request");
+
+    bool clientWantsKeepAlive = false;
+    { // Gestione dell'intestazione Connection per persistenza
+        std::string connHdr = getHeaderValue("Connection", request);
+        std::transform(connHdr.begin(), connHdr.end(), connHdr.begin(), ::tolower);
+        if (request.httpVersion == "HTTP/1.1")
+            clientWantsKeepAlive = (connHdr != "close");
+        else
+            clientWantsKeepAlive = (connHdr == "keep-alive");
+    }
+
+    // Impostazione dello status in base al metodo della richiesta
+    if (request.method != "GET" && request.method != "POST" && request.method != "DELETE")
+        response.setStatus(400, "Bad Request");
     else
         response.setStatus(200, "OK");
-    //rimuovere else
-    //gestione dei varii casi
-    //da gestire come nel get per i path della cgi cgi deve gestire il body per il post??
-    if (request.uri.find("cgi-bin") != std::string::npos){
-        std::cout << "handle cgi request" << std::endl;
+
+    // Esecuzione CGI se richiesto tramite "cgi-bin" nell'URI
+    if (request.uri.find("cgi-bin") != std::string::npos) {
         CGIHandler cgi(request.uri);
-        try{
+        try {
             response.body = cgi.executeScript(request.method, request.body);
-            std::cout << response.body << std::endl;
-        }
-        catch (std::exception& e){
-            std::cout << e.what() <<std::endl;
+        } catch (std::exception &e) {
+            response.setStatus(500, "Internal Server Error");
+            response.body = "<html><body><h1>CGI Error</h1></body></html>";
         }
     }
-    
-    else if (request.method == "GET"){
-        std::cout << "handle get request" << std::endl;
+    else if (request.method == "GET") {
         handleGetRequest(request, response);
     }
-    else if (request.method == "POST"){
-        std::cout<< "handle POST request" << std::endl;
+    else if (request.method == "POST") {
         handlePostRequest(request, response);
     }
-    // else {
-    //     std::cout << "handle DELETE request" << std::endl;
-    //     response.body = "<html><body><h1>Ciao, Mondo!</h1></body></html>";
-    // }
-    else if (request.method == "DELETE") {
-        std::cout << "handle DELETE request" << std::endl;
+    else {
         handleDeleteRequest(request, response);
     }
 
-    response.setHeader("Content-Type", "text/html");//setteare l'header in base alla risposta da dare
+    // Impostazione degli header di risposta
+    response.setHeader("Content-Type", "text/html");
+    {
+        std::ostringstream oss;
+        oss << response.body.size();
+        response.setHeader("Content-Length", oss.str());
+    }
+    response.setHeader("Connection", clientWantsKeepAlive ? "keep-alive" : "close");
 
-    std::ostringstream oss;
-    oss << response.body.size();
-    response.setHeader("Content-Length", oss.str());
-
-    // Ottieni la stringa completa della risposta
-    std::string responseStr = response.toString();
-
-    // Sendind the response... (Hopefully:)
-    ssize_t sent = write(clientConn->getFd(), responseStr.c_str(), responseStr.size());
+    std::string respStr = response.toString();
+    ssize_t sent = write(clientConn->getFd(), respStr.c_str(), respStr.size());
     if (sent < 0) {
         std::cerr << "Errore in write(): " << strerror(errno) << std::endl;
     }
 
-
-
-    // After sending the response , closing the connection (***Va gestito keep-alive?***)
-    //close(client_fd);
-    /* bool keepAlive = false; r.114: part of: keep-alive connection implem. */ 
-    /* Qui viene verificato se IL CLIENT CHIEDE KEEP-ALIVEW
-    if (richiesta contiene "Connection: keep-alive" negli header) :NON chiudiamo la connessione
-    else :chiudiamo la connessione
-    */
-    
-    
-    
-    // bool keepAlive = false; 
-    // std::string conn = getHeaderValue("Connection", request); 
-    // for (size_t i = 0; i < conn.size(); ++i) {
-    //     conn[i] = tolower(conn[i]);
-    // }
-    // if (conn == "keep-alive")
-    //     keepAlive = true;
-    // if (keepAlive){
-    //     size_t headerEnd = rawRequest.find("\r\n\r\n");
-    //     size_t contentLength = 0;
-        
-    //     std::map<std::string, std::string>::iterator contentLengthIt = request.headers.find("Content-Length");
-    //     if (contentLengthIt != request.headers.end()) {
-    //         contentLength = atoi(contentLengthIt->second.c_str());
-    //     }
-        
-    //     size_t totalLength = headerEnd + 4 + contentLength; // 4 = lunghezza di "\r\n\r\n"
-    //     clientConn->removeProcessedRequest(totalLength);
-    // }
-    // else{
-    //     // Chiudiamo la connessione se non è keep-alive && in caso di keep-alive dopo aver processato la richiesta, va rimossa dal buffer SOLO la parte processata.
-    //     close(clientConn->getFd());
-    // }
-    close(clientConn->getFd());
-
+    // Gestione keep-alive o chiusura connessione
+    if (clientWantsKeepAlive) {
+        size_t headerEnd = rawRequest.find("\r\n\r\n");
+        size_t contentLength = 0;
+        std::map<std::string, std::string>::const_iterator it
+        = request.headers.find("Content-Length");
+        if (it != request.headers.end())
+            contentLength = std::atoi(it->second.c_str());
+        size_t total = headerEnd + 4 + contentLength;
+        clientConn->removeProcessedRequest(total);
+        return true;
+    } else {
+        close(clientConn->getFd());
+        return false;
+    }
 }
 
+// Ciclo principale per la gestione degli eventi e delle connessioni
 void HTTPServer::eventLoop() {
-    // Qui utilizzare poll() (or equal func) per gestire le I/O su:
-    // - Socket di ascolto*
-    // - Connessioni attive*
-    // 1. Costruire una struttura (ad esempio std::vector<pollfd>) per gestire eventi di lettura e scrittura.
-
-    // Ad es.:
-    bool loop = true;
+    // Setup della struttura di polling per i socket
     std::vector<pollfd> pollfds;
-    // Aggiungi i socket di ascolto a pollfds
-    for (size_t i = 0; i < _listenSockets.size(); ++i) {
-        pollfd pfd;
-        pfd.fd = _listenSockets[i];
-        pfd.events = POLLIN;
-        pfd.revents = 0;
-        pollfds.push_back(pfd);
+    for (size_t s = 0; s < _listenSockets.size(); ++s) { // ciclo sui listen socket
+        pollfd p;
+        p.fd = _listenSockets[s];
+        p.events = POLLIN;
+        p.revents = 0;
+        pollfds.push_back(p);
     }
-    
-    std::cout << "start event loop..." << std::endl;
 
-    while (loop)
-    {
+    std::cout << "start event loop..." << std::endl;
+    while (true) { // ciclo principale di event loop
         int ret = poll(&pollfds[0], pollfds.size(), -1);
-        if (ret < 0)
-        {
+        if (ret < 0) {
             std::cerr << "Error in poll(): " << strerror(errno) << std::endl;
             continue;
         }
-        // Gestire gli eventi: se uno dei socket di ascolto è pronto, accetta nuove connessioni,
-        // altrimenti gestire le connessioni esistenti.
 
-        // Itera sui pollfd per verificare quali sono pronti
-        for (size_t i = 0; i < pollfds.size(); ++i)
-        {
-            if (pollfds[i].revents & POLLIN)
-            {
-                // Se il **socket è di ascolto**: **Accetta nuove connessioni**
-                if (std::find(_listenSockets.begin(), _listenSockets.end(), pollfds[i].fd) != _listenSockets.end())
-                {
-                    // Accettiamo la connessione
-                    sockaddr_in client_addr;
-                    socklen_t client_len = sizeof(client_addr);
-                    int client_fd = accept(pollfds[i].fd, (struct sockaddr*)&client_addr, &client_len);
-                    if (client_fd < 0)
-                    {
-                        std::cerr << "Error in accept(): " << strerror(errno) << std::endl;
-                        continue;
-                    }
+        for (size_t i = 0; i < pollfds.size(); ++i) { // ciclo sui file descriptor in pollfds
+            if (!(pollfds[i].revents & POLLIN))
+                continue;
 
-                    // Imposta il socket del client in modalità non bloccante
-                    int flags = fcntl(client_fd, F_GETFL, 0);
-                    if (flags >= 0)
-                    {
-                        fcntl(client_fd, F_SETFL, flags | O_NONBLOCK);
-                    }
-                    
-                    std::cout << "new connection acceted: fd " << client_fd << std::endl;
+            int fd = pollfds[i].fd;
 
-                    ClientConnection *newConn = new ClientConnection(client_fd); // Creo un nuovo oggetto ClientConnection per il "nuovo" fd
-                    _clientConnections.push_back(newConn);
-
-                    // Aggiungi il client alla lista dei pollfd per monitorarlo
-                    pollfd client_pfd; /*old ver: struct pollfd client_pfd;*/
-                    client_pfd.fd = client_fd;
-                    client_pfd.events = POLLIN;  // Monitoriamo per lettura (richieste HTTP)
-                    client_pfd.revents = 0;
-                    pollfds.push_back(client_pfd);
+            // Nuova connessione in ingresso se il fd è un listen socket
+            if (std::find(_listenSockets.begin(), _listenSockets.end(), fd) 
+                    != _listenSockets.end()) {
+                sockaddr_in client_addr;
+                socklen_t len = sizeof(client_addr);
+                int client_fd = accept(fd, (struct sockaddr*)&client_addr, &len);
+                if (client_fd < 0) {
+                    std::cerr << "Error in accept(): " << strerror(errno) << std::endl;
+                    continue;
                 }
-                else
-                {
-                    // Qui gestiresti la comunicazione con un client già connesso
-                    // Ad esempio, leggere la richiesta HTTP
-                    
-                    ClientConnection *conn = NULL; // Il fd appartiene a un client già connesso -> Troviamo l'oggetto ClientConnection corrispondente
-                    for (size_t j = 0; j < _clientConnections.size(); ++j) {
-                        if (_clientConnections[j]->getFd() == pollfds[i].fd) {
-                            conn = _clientConnections[j];
-                            break;
-                        }
-                    }
-                    if (!conn) continue;
+                int flags = fcntl(client_fd, F_GETFL, 0);
+                fcntl(client_fd, F_SETFL, flags | O_NONBLOCK);
 
-                    char buffer[4096];
-                    ssize_t n = read(pollfds[i].fd, buffer, sizeof(buffer) - 1);
-                    if (n > 0)
-                    {
-                        // Add i dati letti al buffer persistente della connection
-                        conn->getBuffer().append(buffer, n);
-                       // std::cout << "Buffer for fd " << conn->getFd() << ": " << conn->getBuffer() << std::endl;//debug
-                        if (conn->hasCompleteRequest()) {
-                            std::string rawRequest = conn->getBuffer();
-                            std::cout << "complete request from fd " << conn->getFd() << ": " << rawRequest << std::endl;//richiesta completa
-                        
-                            //FORSE QUI SERVE UNO SGUARDO
-                            handleClientRequest(conn, rawRequest); // Processa la richiesta
-                            /*Se il client non usa keep-alive, handleClientRequest ha chiuso il socket.
-                            Se invece usa keep-alive, dovrai rimuovere solo la parte processata.
-                            Qui, per semplicità, chiudiamo la connessione dopo aver inviato la risposta:
-                            In una versione avanzata, dovresti analizzare la richiesta e mantenere il buffer.
-                            la parte del buffer è stata implementata nella funzione handleClientRequest
-                            */ 
-                            
-                            // Rimuoviamo il ClientConnection e il relativo pollfd.
-                            //GESTIONE KEEP ALIVE
-                            for (size_t k = 0; k < pollfds.size(); ++k) 
-                            {
-                                if (pollfds[k].fd == conn->getFd()) 
-                                {
-                                    pollfds.erase(pollfds.begin() + k);
-                                    break;
-                                }
-                            }
-                            _clientConnections.erase(
-                                std::remove(_clientConnections.begin(), _clientConnections.end(), conn),
-                                _clientConnections.end());
-                                delete conn;
-                                //l'indice per la rimozione
-                            --i;
-                        }
-                    }
-                    if (n <= 0)
-                    {
-                        if (n < 0){
-                            if (errno == EAGAIN || errno == EWOULDBLOCK) 
-                                std::cout << "waiting" << std::endl;
-                            else
-                                std::cerr << "Error in read(): " << strerror(errno) << std::endl;
-                        }
-                        else
-                            std::cout << "closing connection: fd " << pollfds[i].fd << std::endl;
-                        close(pollfds[i].fd);
-                        // Rimuovi il pollfd dalla lista + e l'oggetto ClientConnection
-                        pollfds.erase(pollfds.begin() + i);
-                        _clientConnections.erase(
-                            std::remove(_clientConnections.begin(), _clientConnections.end(), conn),
-                            _clientConnections.end());
-                        delete conn;
-                        --i;
-                    }
+                std::cout << "new connection accepted: fd " << client_fd << std::endl;
+                ClientConnection *newConn = new ClientConnection(client_fd);
+                _clientConnections.push_back(newConn);
+                pollfd cp = { client_fd, POLLIN, 0 };
+                pollfds.push_back(cp);
+                continue;
+            }
+
+            // Gestione dei dati in arrivo dalla connessione client
+            ClientConnection *conn = NULL;
+            for (size_t j = 0; j < _clientConnections.size(); ++j) { // ciclo per trovare la connessione corrispondente
+                if (_clientConnections[j]->getFd() == fd) {
+                    conn = _clientConnections[j];
+                    break;
+                }
+            }
+            if (!conn) continue;
+
+            char buffer[4096];
+            ssize_t n = read(fd, buffer, sizeof(buffer));
+            if (n <= 0) { // chiude la connessione se non ci sono dati
+                close(fd);
+                pollfds.erase(pollfds.begin() + i);
+                _clientConnections.erase(
+                    std::remove(_clientConnections.begin(),
+                                _clientConnections.end(),
+                                conn),
+                    _clientConnections.end());
+                delete conn;
+                --i;
+                continue;
+            }
+            conn->getBuffer().append(buffer, n);
+
+            // Processa tutte le richieste complete nel buffer del client
+            while (conn->hasCompleteRequest()) { // ciclo per gestire richieste multiple
+                std::string rawRequest = conn->getBuffer();
+                bool keepAlive = handleClientRequest(conn, rawRequest);
+
+                if (!keepAlive) {
+                    close(fd);
+                    pollfds.erase(pollfds.begin() + i);
+                    _clientConnections.erase(
+                        std::remove(_clientConnections.begin(),
+                                    _clientConnections.end(),
+                                    conn),
+                        _clientConnections.end());
+                    delete conn;
+                    --i;
+                    break;
                 }
             }
         }
     }
 }
 
+// Funzione per avviare il server (invoca il ciclo di evento)
 void HTTPServer::run() {
     eventLoop();
 }
-
-// **La gestione del loop degli eventi, da subject:**
-// Usare solamente poll() per gestire le I/O su socket. (gestire in modo non bloccante LETTURA e SCRITTURA)
-// & Gestire eventuali errori senza terminare il server
