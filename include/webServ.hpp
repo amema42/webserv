@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   webServ.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amema <amema@student.42.fr>                +#+  +:+       +#+        */
+/*   By: jacopo <jacopo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/19 15:06:40 by jacopo            #+#    #+#             */
-/*   Updated: 2025/04/24 18:34:35 by amema            ###   ########.fr       */
+/*   Updated: 2025/04/28 17:40:29 by jacopo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,7 +49,7 @@
 #include "./HTTPServer.hpp"
 #include "Tokenizer.hpp"
 
-//#define SIZE_MAX 18446744073709551615UL
+#define SIZE_MAX 18446744073709551615UL
 #define ERROR 0
 #define SERVER 1
 #define OPEN_S_BRACKET 7
@@ -89,6 +89,7 @@ std::string mcamilli(const std::vector<T>& value){
 Server& getServerByHost(const HTTPRequest& request, const Config & config);
 void printMap(std::map<std::string, std::string>& map, std::string first, std::string second);
 std::string getHeaderValue(const std::string toFind, const HTTPRequest& request);
-std::string CreateFileName(const HTTPRequest& request);
+std::string CreateFileName(HTTPRequest& request);
+Location&  getLocationByName(std::string path, Server& server);
 
 #endif // WEBSERV_hpp

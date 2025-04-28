@@ -98,7 +98,7 @@ void HTTPServer::handleGetRequest(const HTTPRequest& request, HTTPResponse& resp
     struct stat st;
     if (stat(fullpath.c_str(), &st) == 0 && S_ISDIR(st.st_mode)) {
         // Se è directory, assicuriamoci di avere lo slash finale
-        if (request.uri.back() != '/')
+        if (request.uri[request.uri.size() - 1] != '/')
         {
             response.setStatus(301, "Moved Permanently");
             //fullpath += '/';
@@ -134,7 +134,7 @@ void HTTPServer::handleGetRequest(const HTTPRequest& request, HTTPResponse& resp
     }
 }
 
-void HTTPServer::handlePostRequest(const HTTPRequest& request, HTTPResponse& response){
+void HTTPServer::handlePostRequest(HTTPRequest& request, HTTPResponse& response){
     
     Server& server =  getServerByHost(request, _config);
     size_t i = std::strtol((getHeaderValue("Content-Length", request)).c_str(), NULL, 10);
@@ -284,9 +284,9 @@ void HTTPServer::handleClientRequest(ClientConnection *clientConn, const std::st
         response.setStatus(400, "bad request");
     else
         response.setStatus(200, "OK");
-    
+    //rimuovere else
     //gestione dei varii casi
-    //da gestire come nel get per i path della cgi
+    //da gestire come nel get per i path della cgi cgi deve gestire il body per il post??
     if (request.uri.find("cgi-bin") != std::string::npos){
         std::cout << "handle cgi request" << std::endl;
         CGIHandler cgi(request.uri);
@@ -461,33 +461,33 @@ void HTTPServer::eventLoop() {
                        // std::cout << "Buffer for fd " << conn->getFd() << ": " << conn->getBuffer() << std::endl;//debug
                         if (conn->hasCompleteRequest()) {
                             std::string rawRequest = conn->getBuffer();
-                           // std::cout << "complete request from fd " << conn->getFd() << ": " << rawRequest << std::endl;//richiesta completa
+                            std::cout << "complete request from fd " << conn->getFd() << ": " << rawRequest << std::endl;//richiesta completa
                         
-                        //FORSE QUI SERVE UNO SGUARDO
-                        handleClientRequest(conn, rawRequest); // Processa la richiesta
-                        /*Se il client non usa keep-alive, handleClientRequest ha chiuso il socket.
-                        Se invece usa keep-alive, dovrai rimuovere solo la parte processata.
-                        Qui, per semplicità, chiudiamo la connessione dopo aver inviato la risposta:
-                        In una versione avanzata, dovresti analizzare la richiesta e mantenere il buffer.
-                        la parte del buffer è stata implementata nella funzione handleClientRequest
-                        */ 
-
-                        // Rimuoviamo il ClientConnection e il relativo pollfd.
-                        //GESTIONE KEEP ALIVE
-                        for (size_t k = 0; k < pollfds.size(); ++k) 
-                        {
-                            if (pollfds[k].fd == conn->getFd()) 
+                            //FORSE QUI SERVE UNO SGUARDO
+                            handleClientRequest(conn, rawRequest); // Processa la richiesta
+                            /*Se il client non usa keep-alive, handleClientRequest ha chiuso il socket.
+                            Se invece usa keep-alive, dovrai rimuovere solo la parte processata.
+                            Qui, per semplicità, chiudiamo la connessione dopo aver inviato la risposta:
+                            In una versione avanzata, dovresti analizzare la richiesta e mantenere il buffer.
+                            la parte del buffer è stata implementata nella funzione handleClientRequest
+                            */ 
+                            
+                            // Rimuoviamo il ClientConnection e il relativo pollfd.
+                            //GESTIONE KEEP ALIVE
+                            for (size_t k = 0; k < pollfds.size(); ++k) 
                             {
-                                pollfds.erase(pollfds.begin() + k);
-                                break;
+                                if (pollfds[k].fd == conn->getFd()) 
+                                {
+                                    pollfds.erase(pollfds.begin() + k);
+                                    break;
+                                }
                             }
-                        }
-                        _clientConnections.erase(
-                            std::remove(_clientConnections.begin(), _clientConnections.end(), conn),
-                            _clientConnections.end());
-                            delete conn;
-                            //l'indice per la rimozione
-                        --i;
+                            _clientConnections.erase(
+                                std::remove(_clientConnections.begin(), _clientConnections.end(), conn),
+                                _clientConnections.end());
+                                delete conn;
+                                //l'indice per la rimozione
+                            --i;
                         }
                     }
                     if (n <= 0)
