@@ -6,9 +6,56 @@
 
 // Constructor: inizializza config e socket di ascolto
 HTTPServer::HTTPServer(const Config &config) : _config(config) {
-    initSockets();
+	initSockets();
 }
 
+//necessita del perscorso file e di partire da zero, 
+//restituisce una strnga html della struttura di cartelle
+std::string HTTPServer::dirTree(const std::string& dirPath, int depth) //partire da 0
+{
+	DIR *dir;
+	struct dirent *ent;
+	std::stringstream html;
+
+	if ((dir = opendir(dirPath.c_str())) != NULL)
+	{
+		if (depth == 0)
+		{
+			html << "<!DOCTYPE html>\n<html>\n<head>\n<title>Contenuto directory: " 
+				 << dirPath << "</title>\n</head>\n<body>\n";
+			html << "<h1>Contenuto directory: " << dirPath << "</h1>\n";
+		}
+		html << "<ul>\n";
+		while ((ent = readdir(dir)) != NULL)
+		{
+			std::string name = ent->d_name;
+			
+			if (name != "." && name != "..") {
+				std::string fullPath = dirPath + "/" + name;
+				struct stat statbuf;
+				
+				if (stat(fullPath.c_str(), &statbuf) == 0)
+				{
+					if (S_ISDIR(statbuf.st_mode))
+					{
+						html << "<li><strong>" << name << "/</strong>\n";
+						html << dirTree(fullPath, depth + 1);
+						html << "</li>\n";
+					} 
+					else 
+						html << "<li>" << name << "</li>\n";
+				}
+			}
+		}
+		html << "</ul>\n";
+		closedir(dir);
+		if (depth == 0) 
+			html << "</body>\n</html>\n";
+	} 
+	else
+		html << "<p>Impossibile aprire la directory</p>";
+	return html.str();
+}
 // Distruttore: chiude i socket di ascolto
 HTTPServer::~HTTPServer() {
     // close listen sockets
@@ -54,10 +101,24 @@ void HTTPServer::initSockets() {
             close(sockfd);
             throw std::runtime_error("Error in listen().");
         }
-
         _listenSockets.push_back(sockfd);
         std::cout << "Server are listening on port " << server.listen[0] << std::endl;
     }
+}
+
+//controlla tutte le location e i rispettivi path ritorna true se autoindex_flag è true
+bool HTTPServer::findLocationCheckAuto(Server& Server, std::string location)
+{
+	int i = 0;
+	//std::cout << "----------------->debug: " << Server.location.size() << "\n";
+	while (i < static_cast<int>(Server.location.size()))
+	{
+		//std::cout << "----------------->debug: " << Server.location[i].path[0] << "\n";
+		if (Server.location[i].path[0] == location.substr(0, location.size() - 1))
+			return (Server.location[i].autoindex_flag);
+		i++;
+	}
+	return (false);
 }
 
 /*
@@ -104,6 +165,69 @@ void HTTPServer::initSockets() {
 */
 
 // Gestisce le richieste GET
+// void HTTPServer::handleGetRequest(const HTTPRequest& request, HTTPResponse& response) {
+//     // seleziona il server in base all'host della richiesta
+//     Server& server = getServerByHost(request, _config);
+
+//     std::string fullpath = server.root[0] + request.uri;
+//     std::cout << "\t\t[GET] base path: " << fullpath << std::endl;
+
+//     struct stat st;
+//     // verifica se il path è una directory
+//     if (stat(fullpath.c_str(), &st) == 0 && S_ISDIR(st.st_mode)) {
+//         // Se è directory, assicuriamoci di avere lo slash finale
+//         if (request.uri[request.uri.size() - 1] != '/')
+//         {
+//             response.setStatus(301, "Moved Permanently");
+//             response.setHeader("Location", request.uri + "/");
+//             return;
+//         }
+
+//         try {
+//             std::cout << "get location by name" << std::endl;
+//             Location& location = getLocationByName(request.uri.substr(0, (request.uri.size() -1)), server);
+//             fullpath += location.l_index[0];
+//         }
+//         catch(std::exception& e){
+//             std::cout << e.what() << std::endl;
+//             fullpath += server.index[0];
+//         }
+//         std::cout << "\t\t[GET] directory → path: " << fullpath << std::endl;
+//     }
+
+//     try {
+//         std::string content = readFile(fullpath);
+//         response.setStatus(200, "OK");
+//         response.body = content;
+//     }
+//     catch (std::exception& e)
+//     {
+//         std::cerr << "[GET] errore readFile: " << e.what() << std::endl;
+//         response.setStatus(404, "Not Found");
+//         try 
+//         {
+//             std::string errorPage = server.getErrorPage("404");
+// 			if (findLocationCheckAuto(server, request.uri))
+// 			{
+// 				std::cout << "findLocChechkouto ok\n";
+// 				response.body = dirTree(fullpath.substr(0, fullpath.size() - server.index[0].size() - 1), 0);
+// 			}
+// 			else
+// 			{
+// 				std::cout << "findLocChechkouto false\n";
+// 				response.body = readFile(errorPage);
+// 			}
+// 			std::cout << "mcamilli'sprove pe capi il codice----------> non ho trovato l'index a uri "<< fullpath.substr(0, fullpath.size() - server.index[0].size() - 1) << "\n";
+
+//         } catch (...) 
+//         {
+//             response.body = "<html><body><h1>404 Not Found</h1>"
+//                             "<p>File not found!.</p>"
+//                             "</body></html>";
+//         }
+//     }
+// }
+
 void HTTPServer::handleGetRequest(const HTTPRequest& request, HTTPResponse& response) {
     // seleziona il server in base all'host della richiesta
     Server& server = getServerByHost(request, _config);
@@ -145,8 +269,19 @@ void HTTPServer::handleGetRequest(const HTTPRequest& request, HTTPResponse& resp
         response.setStatus(404, "Not Found");
         try 
         {
-            std::string errorPage = server.getErrorPage("404");
-            response.body = readFile(errorPage);
+			std::string errorPage = server.getErrorPage("404");
+			//codice autoindex inizia qui
+			if (findLocationCheckAuto(server, request.uri))
+			{
+				response.setStatus(200, "OK");
+				response.body = dirTree(fullpath.substr(0, fullpath.size() - server.index[0].size() - 1), 0);
+			}
+			else
+			{
+				std::cout << "false, no autoindex\n";
+				response.body = readFile(errorPage);
+			}
+			//codice autoindex finisce qui
         } catch (...) 
         {
             response.body = "<html><body><h1>404 Not Found</h1>"
@@ -155,6 +290,7 @@ void HTTPServer::handleGetRequest(const HTTPRequest& request, HTTPResponse& resp
         }
     }
 }
+
 
 void HTTPServer::handlePostRequest(HTTPRequest& request, HTTPResponse& response){
     
@@ -467,6 +603,9 @@ void HTTPServer::eventLoop() {
             }
         }
     }
+	for (size_t i = 0; i < _clientConnections.size(); ++i)
+        delete _clientConnections[i];
+    _clientConnections.clear();
 }
 
 // Funzione per avviare il server (invoca il ciclo di evento)

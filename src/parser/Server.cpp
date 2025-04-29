@@ -24,7 +24,7 @@ Server::~Server()
     return;
 }
 
-Server::Server(const Server &inst) : type(inst.type), numbers(inst.numbers), listen(inst.listen), server_name(inst.server_name), root(inst.root), error_page(inst.error_page), client_max_body_size(inst.client_max_body_size), index(inst.index), location(inst.location),  l_cgi_path(inst.l_cgi_path), l_cgi_extension(inst.l_cgi_extension)
+Server::Server(const Server &inst) : numbers(inst.numbers), listen(inst.listen), server_name(inst.server_name), root(inst.root), error_page(inst.error_page), client_max_body_size(inst.client_max_body_size), index(inst.index), location(inst.location),  l_cgi_path(inst.l_cgi_path), l_cgi_extension(inst.l_cgi_extension)
 {
     std::cout << "Server copy constructor" << std::endl;
     return;
@@ -34,7 +34,6 @@ Server &Server::operator=(const Server &inst)
 {
     if (this != &inst) 
 	{
-        type = inst.type;
         numbers = inst.numbers;
         listen = inst.listen;
         server_name = inst.server_name;

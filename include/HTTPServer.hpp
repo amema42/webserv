@@ -24,7 +24,8 @@ private:
     // helper functions
     void initSockets();
     void eventLoop();
-
+	bool findLocationCheckAuto(Server& Server, std::string location); //in get, trova la location e controlla se ha l'autoindex
+	std::string dirTree(const std::string& dirPath, int depth);//crea la lista di directory per aiutoindex
     // Metodo per gestire "una" richiesta del client -> Riceve *fd* del client e la richiesta raw/grezza (rawRequest)
     //void handleClientRequest(int client_fd, const std::string &rawRequest); -> modifico la funzione in modo da ricevere un puntatore a ClientConnection invece del solo fd.
     // logica rimane simile, ma va verificata la presenza dell'header Connection: keep-alive.

@@ -10,6 +10,7 @@
 
 
 
+
 int ParseWord(int look_for, std::string Word)
 {
     if (look_for == IN_SERVER)
@@ -54,6 +55,14 @@ int ParseWord(int look_for, std::string Word)
     }
     else if (look_for == IN_LOCATION)
     {
+		if (Word == "autoindex")
+		{
+            return AUTOINDEX;
+		}
+		if (Word == "return")
+		{
+            return REDIRECTION;
+		}
         if (Word == "root")
 		{
             return L_ROOT_ARG;
@@ -354,6 +363,8 @@ bool keyExists(std::map<std::string, std::string>& myMap, const std::string& key
     return myMap.find(key) != myMap.end();
 }
 
+
+//controlla che il codice inserito come error page sia giusto
 bool check_error_code(std::map<std::string, std::string>& error_map, const std::string& error_code)
 {
 	if (keyExists(error_map, error_code))
@@ -364,6 +375,22 @@ bool check_error_code(std::map<std::string, std::string>& error_map, const std::
 	if (!(error_code == "400" || error_code == "403" || error_code == "404" || error_code == "405" || error_code == "413" || error_code == "500"))
 	{
 		std::cout << "unexpected error code: '" << error_code << "' ";
+		return false;
+	}
+	return true;
+}
+
+//controlla che il codice inserito di redirect sia giusto e che non ci siano due codici
+bool check_redirect_code(std::map<std::string, std::string>& redirect_map, const std::string& redirect_code)
+{
+	if (!redirect_map.empty())
+	{
+		std::cout << "you already have a redirection in this location: '" << redirect_code << "' is one too many ";
+		return false;
+	}
+	if (!(redirect_code == "301" || redirect_code == "302" ))
+	{
+		std::cout << "unexpected redirect code: '" << redirect_code << "' ";
 		return false;
 	}
 	return true;
@@ -557,6 +584,7 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
 						{
 							look_for = ERROR;
 							std::cout << "syntax error: no closed semicolon at line " << n_line << "\n";
+							break;
 						}
 						servers.back().error_page[error_code] = error_page;
 						break;
@@ -597,12 +625,8 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
 							break;
 						}
 						servers.back().location.push_back(Location());
-						if (insertArgInField(Word, look_for, servers.back().location.back().path, n_line))
-						{
-							look_for = OPEN_L_BRACKET;
-						}
-						else
-							look_for = ERROR;
+						servers.back().location.back().path.push_back(Word);
+						look_for = OPEN_L_BRACKET;
 						break;
 					}
 					case IN_LOCATION:
@@ -616,7 +640,7 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
 						}
                 		else if ((look_for = ParseWord(look_for, Word))) //cambia look for in base a cio che trova, se trova 0 è errore
                 		{
-                    		if (!servers.back().location.back().setNumberToZero(look_for)) //se trova due volte lo stesso campo va in errore
+							if (!servers.back().location.back().setNumberToZero(look_for)) //se trova due volte lo stesso campo va in errore
 							{
 								look_for = ERROR;
 								std::cout << "syntax error at line " << n_line
@@ -624,7 +648,7 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
 								<< "' repetition in your conf\n";
 								break;
 							}
-							break;
+                    		break;
                 		}
 						else
 						{
@@ -656,6 +680,62 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
 						}
 						else
 							look_for = ERROR;
+						break;
+					}
+					case REDIRECTION:
+					{	
+						std::string redirection_code = Word;
+    					std::string redirection_page;
+						if(!check_redirect_code(servers.back().location.back().redirect_page, redirection_code))  //-controlla che ci sia l'error giusto e che non sia gia stato fatto
+						{
+							std::cout << " syntax error at line " << n_line << std::endl;
+							look_for = ERROR;
+							break;
+						}
+   						if (!(iss >> redirection_page))
+						{
+        					std::cout << "syntax error: missing redirection page for code " << redirection_code << "\n";
+        					look_for = ERROR;
+        					break;
+    					}
+    					if (endsWithSemicolon(redirection_page))
+						{
+        					redirection_page = redirection_page.substr(0, redirection_page.size() - 1);
+        					look_for = IN_LOCATION;
+    					}
+						else
+						{
+							look_for = ERROR;
+							std::cout << "syntax error: no closed semicolon at line " << n_line << "\n";
+							break;
+						}
+						servers.back().location.back().redirect_page[redirection_code] = redirection_page;
+						break;
+					}
+					case AUTOINDEX:
+					{
+						if (servers.back().location.back().autoindex.length() != 0)
+						{
+							look_for = ERROR;
+								std::cout << "word = " << Word;
+							std::cout << " syntax error: double autoindex in location at line " << n_line << "\n";
+						}
+						if (Word.substr(0, Word.size() - 1) != "on" && Word.substr(0, Word.size() - 1) != "off")
+						{
+							look_for = ERROR;
+							std::cout << "syntax error: at line " << n_line << " only 'on' or 'off' accepted for autoindex field\n";
+						}
+						if (endsWithSemicolon(Word))
+        					look_for = IN_LOCATION;
+						else
+						{
+							look_for = ERROR;
+							std::cout << "syntax error: no closed semicolon at line " << n_line << "\n";
+							break;
+						}
+						servers.back().location.back().autoindex = Word.substr(0, Word.size() - 1);
+						if (servers.back().location.back().autoindex == "on")
+							servers.back().location.back().autoindex_flag = true;
 						break;
 					}
 					case L_INDEX_ARG:
@@ -706,8 +786,8 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
                 		file.close();
                 		return 0;
     		}
-			 //std::cout << "look for =" << look_for << "sono uscito dallo switch\n";
-			// std::cout << Word << " è la parola con cui sono uscito at line " << n_line << " \n";
+			 std::cout << "look for =" << look_for << "sono uscito dallo switch\n";
+			std::cout << "------->" << Word << " è la parola con cui sono uscito at line " << n_line << " \n";
 
         }
     }

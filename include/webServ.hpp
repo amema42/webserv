@@ -6,7 +6,7 @@
 /*   By: mcamilli <mcamilli@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/19 15:06:40 by jacopo            #+#    #+#             */
-/*   Updated: 2025/04/29 22:06:16 by mcamilli         ###   ########.fr       */
+/*   Updated: 2025/04/29 23:17:04 by mcamilli         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 
 
 //include all the library here pls 
+#include <dirent.h>
 #include <signal.h>
 #include <sstream>
 #include <iostream>
@@ -71,6 +72,8 @@ extern volatile sig_atomic_t webserv_runo;
 #define L_CGI_EXTENSION_ARG 5121 //1 arg
 #define L_UPLOAD_STORE_ARG 5131 // 1 arg
 #define L_CLIENT_MAX_BODY_SIZE 5071 //1 arg
+#define REDIRECTION 5302 //Return 2 arg
+#define AUTOINDEX 5001 //1 ARG
 
 bool endsWithSemicolon(const std::string& word);
 bool insertArgInField(std::string& Word, int look_for, std::vector<std::string>& args, int n_line);
