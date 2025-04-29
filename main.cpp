@@ -1,5 +1,5 @@
 #include "webServ.hpp"
-
+volatile sig_atomic_t webserv_runo = 1;
 int main(int ac, char **av){
 	std::string confPath = "./config/webserv.conf";
 	if (ac > 2) {

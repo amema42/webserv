@@ -26,7 +26,13 @@ void HTTPServer::initSockets() {
         int sockfd = socket(AF_INET, SOCK_STREAM, 0);
         if (sockfd < 0)
             throw std::runtime_error("Error in socket creation.");
-
+		 // Add this code to enable address reuse
+		 int optval = 1;
+		 if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)) < 0) 
+		 {
+			close(sockfd);
+			throw std::runtime_error("Error setting SO_REUSEADDR option.");
+		 }
         int flags = fcntl(sockfd, F_GETFL, 0);
         if (flags < 0)
             throw std::runtime_error("Errore in fcntl F_GETFL");
@@ -359,8 +365,17 @@ bool HTTPServer::handleClientRequest(ClientConnection *clientConn, const std::st
     }
 }
 
+extern "C" void signalHandler(int signum) {
+    std::cout << "\nReceived signal " << signum << ", shutting down server..." << std::endl;
+    webserv_runo = 0;  // Usa la variabile globale che hai già definito
+}
+
+
 // Ciclo principale per la gestione degli eventi e delle connessioni
 void HTTPServer::eventLoop() {
+
+	signal(SIGINT, signalHandler);
+	signal(SIGTERM, signalHandler);
     // Setup della struttura di polling per i socket
     std::vector<pollfd> pollfds;
     for (size_t s = 0; s < _listenSockets.size(); ++s) { // ciclo sui listen socket
@@ -372,7 +387,7 @@ void HTTPServer::eventLoop() {
     }
 
     std::cout << "start event loop..." << std::endl;
-    while (true) { // ciclo principale di event loop
+    while (webserv_runo) { // ciclo principale di event loop
         int ret = poll(&pollfds[0], pollfds.size(), -1);
         if (ret < 0) {
             std::cerr << "Error in poll(): " << strerror(errno) << std::endl;

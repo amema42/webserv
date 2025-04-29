@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   webServ.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jacopo <jacopo@student.42.fr>              +#+  +:+       +#+        */
+/*   By: mcamilli <mcamilli@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/19 15:06:40 by jacopo            #+#    #+#             */
-/*   Updated: 2025/04/28 17:40:29 by jacopo           ###   ########.fr       */
+/*   Updated: 2025/04/29 22:06:16 by mcamilli         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 
 
 //include all the library here pls 
-
+#include <signal.h>
 #include <sstream>
 #include <iostream>
 #include <stdexcept>
@@ -49,6 +49,7 @@
 #include "./HTTPServer.hpp"
 #include "Tokenizer.hpp"
 
+extern volatile sig_atomic_t webserv_runo;
 #define SIZE_MAX 18446744073709551615UL
 #define ERROR 0
 #define SERVER 1
