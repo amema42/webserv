@@ -54,6 +54,49 @@ void HTTPServer::initSockets() {
     }
 }
 
+/*
+    void HTTPServer::handleGetRequest(const HTTPRequest& request, HTTPResponse& response) {
+    std::stringstream filepath;
+    Server& server =  getServerByHost(request, _config);
+    if(request.uri.size() == 1)
+        filepath << server.root[0] << request.uri  << server.index[0];
+    else{
+        try{
+            std::cout << "get location by name" << std::endl;
+            Location& location = getLocationByName(request.uri, server);
+            std::cout << "founded location" << std::endl;
+            filepath << server.root[0] << request.uri << "/" << location.l_index[0];
+        }
+        catch(std::exception& e){
+            std::cout << e.what();
+            filepath << server.root[0] << request.uri << "/" << server.index[0];
+        }
+
+    }
+    std::cout << "\t\tla path per il file da trovare" << filepath.str() << std::endl;
+    try {
+        std::string content = readFile(filepath.str());
+        response.setStatus(200, "OK");
+        response.body = content;
+    }
+    catch (std::exception& e){
+        std::cout << e.what() << std::endl;
+        response.setStatus(404, "Not Found");
+        try{
+            std::string errorPath = server.getErrorPage("404");
+            std::string errorContent = readFile(errorPath);
+            response.body = errorContent;
+        }
+        catch(std::exception& e){
+            std::cout << e.what() <<std::endl;
+            response.body = "<html><body><h1>File Not Found</h1><p>default error page a specific one are not provided in config file</p></body></html>";
+        }
+        return;
+    }
+    return;
+}
+*/
+
 // Gestisce le richieste GET
 void HTTPServer::handleGetRequest(const HTTPRequest& request, HTTPResponse& response) {
     // seleziona il server in base all'host della richiesta
@@ -72,7 +115,16 @@ void HTTPServer::handleGetRequest(const HTTPRequest& request, HTTPResponse& resp
             response.setHeader("Location", request.uri + "/");
             return;
         }
-        fullpath += server.index[0];
+
+        try {
+            std::cout << "get location by name" << std::endl;
+            Location& location = getLocationByName(request.uri.substr(0, (request.uri.size() -1)), server);
+            fullpath += location.l_index[0];
+        }
+        catch(std::exception& e){
+            std::cout << e.what() << std::endl;
+            fullpath += server.index[0];
+        }
         std::cout << "\t\t[GET] directory → path: " << fullpath << std::endl;
     }
 
