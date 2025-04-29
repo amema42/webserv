@@ -327,18 +327,21 @@ bool insertArgInListen(std::string& Word, int look_for, std::vector<int>& args, 
 	return false;
 }
 
-bool isWordValid(const std::string& Word, const std::vector<Location>& location)
+bool isWordValid(const std::string& Word, const std::vector<Location>& locations)
 {
-	if (location.size() == 0)
-		return true;
-	int i = 0;
-	while ( i < static_cast<int>(location.size()) && location[i].path.back() != Word)
-		i++;
-	if (i == static_cast<int>(location.size()))
-		return true;
-	else 
-		return false;
-	return true;
+    size_t i = 0;
+    // Scorri ciascuna Location con while
+    while (i < locations.size()) {
+        // Ottieni il vettore di path per questa location
+        const std::vector<std::string>& paths = locations[i].path;
+        // Se non è .empty + l'ultimo elemento è uguale a Word => ripetuto
+        if (!paths.empty() && paths.back() == Word) {
+            return false;
+        }
+        ++i;
+    }
+    // Se non l'abbiamo mai trovato, è isValid
+    return true;
 }
 
 bool endsWithPython(const std::string& str) 

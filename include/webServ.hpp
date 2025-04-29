@@ -6,7 +6,7 @@
 /*   By: mcamilli <mcamilli@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/19 15:06:40 by jacopo            #+#    #+#             */
-/*   Updated: 2025/04/28 01:31:34 by mcamilli         ###   ########.fr       */
+/*   Updated: 2025/04/29 10:44:42 by mcamilli         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,6 +91,7 @@ std::string mcamilli(const std::vector<T>& value){
 Server& getServerByHost(const HTTPRequest& request, const Config & config);
 void printMap(std::map<std::string, std::string>& map, std::string first, std::string second);
 std::string getHeaderValue(const std::string toFind, const HTTPRequest& request);
-std::string CreateFileName(const HTTPRequest& request);
+std::string CreateFileName(HTTPRequest& request);
+Location&  getLocationByName(std::string path, Server& server);
 
 #endif // WEBSERV_hpp
