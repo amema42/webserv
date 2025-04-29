@@ -6,15 +6,7 @@
 
 // Constructor: inizializza config e socket di ascolto
 HTTPServer::HTTPServer(const Config &config) : _config(config) {
-    initSockets();
-}
-
-// Distruttore: chiude i socket di ascolto
-HTTPServer::~HTTPServer() {
-    // close listen sockets
-    for (size_t i = 0; i < _listenSockets.size(); ++i) { // ciclo sui listen socket
-        close(_listenSockets[i]);
-    }
+	initSockets();
 }
 
 std::string HTTPServer::dirTree(const std::string& dirPath, int depth) //partire da 0
@@ -62,8 +54,15 @@ std::string HTTPServer::dirTree(const std::string& dirPath, int depth) //partire
 		html << "<p>Impossibile aprire la directory</p>";
 	return html.str();
 }
+// Distruttore: chiude i socket di ascolto
+HTTPServer::~HTTPServer() {
+    // close listen sockets
+    for (size_t i = 0; i < _listenSockets.size(); ++i) { // ciclo sui listen socket
+        close(_listenSockets[i]);
+    }
+}
 
-
+// Funzione per inizializzare i socket in base ai server configurati
 void HTTPServer::initSockets() {
     // inizializzazione dei socket
     for (size_t i = 0; i < (*_config.servers).size(); ++i) { // ciclo sui server configurati
@@ -94,12 +93,23 @@ void HTTPServer::initSockets() {
             close(sockfd);
             throw std::runtime_error("Error in listen().");
         }
-
         _listenSockets.push_back(sockfd);
         std::cout << "Server are listening on port " << server.listen[0] << std::endl;
     }
 }
-
+bool HTTPServer::findLocationCheckAuto(Server& Server, std::string location)
+{
+	int i = 0;
+	std::cout << "----------------->debug: " << Server.location.size() << "\n";
+	while (i < static_cast<int>(Server.location.size()))
+	{
+		std::cout << "----------------->debug: " << Server.location[i].path[0] << "\n";
+		if (Server.location[i].path[0] == location.substr(0, location.size() - 1))
+			return (Server.location[i].autoindex_flag);
+		i++;
+	}
+	return (false);
+}
 // Gestisce le richieste GET
 void HTTPServer::handleGetRequest(const HTTPRequest& request, HTTPResponse& response) {
     // seleziona il server in base all'host della richiesta
@@ -134,7 +144,18 @@ void HTTPServer::handleGetRequest(const HTTPRequest& request, HTTPResponse& resp
         try 
         {
             std::string errorPage = server.getErrorPage("404");
-            response.body = readFile(errorPage);
+			if (findLocationCheckAuto(server, request.uri))
+			{
+				std::cout << "findLocChechkouto ok\n";
+				response.body = dirTree(fullpath, 0);
+			}
+			else
+			{
+				std::cout << "findLocChechkouto false\n";
+				response.body = readFile(errorPage);
+			}
+			std::cout << "mcamilli'sprove pe capi il codice----------> non ho trovato l'index a uri "<< request.uri << "\n";
+
         } catch (...) 
         {
             response.body = "<html><body><h1>404 Not Found</h1>"
