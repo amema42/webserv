@@ -10,6 +10,7 @@
 
 
 
+
 int ParseWord(int look_for, std::string Word)
 {
     if (look_for == IN_SERVER)
@@ -356,11 +357,12 @@ bool endsWithPython(const std::string& str)
     return str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0;
 }
 
-//controlla se una chiave gia esiste in una mappa
+
 bool keyExists(std::map<std::string, std::string>& myMap, const std::string& key)
 {
     return myMap.find(key) != myMap.end();
 }
+
 
 //controlla che il codice inserito come error page sia giusto
 bool check_error_code(std::map<std::string, std::string>& error_map, const std::string& error_code)
@@ -623,12 +625,8 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
 							break;
 						}
 						servers.back().location.push_back(Location());
-						if (insertArgInField(Word, look_for, servers.back().location.back().path, n_line))
-						{
-							look_for = OPEN_L_BRACKET;
-						}
-						else
-							look_for = ERROR;
+						servers.back().location.back().path.push_back(Word);
+						look_for = OPEN_L_BRACKET;
 						break;
 					}
 					case IN_LOCATION:
@@ -642,6 +640,14 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
 						}
                 		else if ((look_for = ParseWord(look_for, Word))) //cambia look for in base a cio che trova, se trova 0 è errore
                 		{
+							if (!servers.back().location.back().setNumberToZero(look_for)) //se trova due volte lo stesso campo va in errore
+							{
+								look_for = ERROR;
+								std::cout << "syntax error at line " << n_line
+								<< ": watch out for '" << Word
+								<< "' repetition in your conf\n";
+								break;
+							}
                     		break;
                 		}
 						else

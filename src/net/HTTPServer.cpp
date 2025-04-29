@@ -147,14 +147,14 @@ void HTTPServer::handleGetRequest(const HTTPRequest& request, HTTPResponse& resp
 			if (findLocationCheckAuto(server, request.uri))
 			{
 				std::cout << "findLocChechkouto ok\n";
-				response.body = dirTree(fullpath, 0);
+				response.body = dirTree(fullpath.substr(0, fullpath.size() - server.index[0].size() - 1), 0);
 			}
 			else
 			{
 				std::cout << "findLocChechkouto false\n";
 				response.body = readFile(errorPage);
 			}
-			std::cout << "mcamilli'sprove pe capi il codice----------> non ho trovato l'index a uri "<< request.uri << "\n";
+			std::cout << "mcamilli'sprove pe capi il codice----------> non ho trovato l'index a uri "<< fullpath.substr(0, fullpath.size() - server.index[0].size() - 1) << "\n";
 
         } catch (...) 
         {
