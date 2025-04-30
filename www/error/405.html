@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ATTENZIONE! ERRORE GRAVISSIMO 405!!! METODO VIETATO!</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background-color: #ffff00; /* Bright yellow, why not? */
+            color: #ff00ff; /* Shocking pink again! */
+            text-align: center;
+            margin: 50px;
+            animation: pulsate 1s infinite alternate; /* Changed animation for variety */
+        }
+
+        @keyframes pulsate {
+            from { transform: scale(1); }
+            to { transform: scale(1.05); }
+        }
+
+        h1 {
+            font-size: 6em; /* Bigger is better (worse?) */
+            text-decoration: wavy overline blue; /* New decoration combo! */
+            text-shadow: 4px 4px #ff0000; /* Red shadow! */
+            margin-bottom: 0;
+        }
+
+        p {
+            font-size: 2.5em; /* Make it LOUDER */
+            border: 6px double orange; /* Chunky border */
+            padding: 25px;
+            background-color: #00ffff; /* Cyan background */
+            color: #000080; /* Navy blue text */
+            display: inline-block;
+            margin-top: 20px;
+        }
+
+        button {
+            font-family: 'Impact', sans-serif; /* More impact! */
+            font-size: 2em; /* HUGE BUTTON */
+            background-color: #800080; /* Purple button */
+            color: #ffffff; /* White text */
+            border: 4px solid lime; /* Lime border */
+            padding: 20px 40px;
+            cursor: not-allowed; /* The cursor lies! */
+            margin-top: 40px;
+            animation: raveblink 0.3s infinite; /* Faster blinking! */
+        }
+
+        @keyframes raveblink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.1; }
+        }
+
+        #movingText {
+            position: absolute;
+            top: 20px; /* Starting somewhere new */
+            right: 20px;
+            font-size: 1.5em;
+            color: black;
+            background-color: silver;
+            padding: 10px;
+            border: 3px dashed gold;
+            z-index: 1000; /* Make sure it's on top of EVERYTHING */
+        }
+    </style>
+</head>
+<body>
+    <div id="movingText">METODO NON AUTORIZZATO! METODO NON AUTORIZZATO!</div>
+    <h1>4<span style="color: red;">0</span>5</h1>
+    <p>ALT ALT ALT! FERMO TUTTO!<br>Hai provato ad accedere a questa pagina usando il METODO SBAGLIATO!<br>Non puoi semplicemente fare *COSE* a caso sul mio sito!</p>
+    <button onclick="tryDifferentMethod()">CAMBIA METODO SUBITO (se sai quale!)</button>
+
+    <script>
+        function tryDifferentMethod() {
+             const body = document.body;
+            let pulsateInterval = setInterval(() => {
+                body.style.transform = `scale(${Math.random() * 0.1 + 1})`; // Random slight scaling
+            }, 50);
+
+            setTimeout(() => {
+                clearInterval(pulsateInterval);
+                body.style.transform = 'scale(1)';
+                alert("Lol! Pensavi davvero di poter 'cambiare metodo'? Questa pagina è bloccata, punto! Riprova... ma non servirà a nulla!");
+            }, 4000); // Pulsate a bit longer
+        }
+
+        const movingText = document.getElementById('movingText');
+        let x = window.innerWidth - movingText.offsetWidth - 20; // Start from right
+        let y = 20;
+        let dx = -3; // Faster horizontal movement
+        let dy = 2;
+
+        function moveText() {
+            x += dx;
+            y += dy;
+            movingText.style.left = x + 'px';
+            movingText.style.top = y + 'px';
+
+            // Adjusted bounce to window edges
+            if (x + movingText.offsetWidth > window.innerWidth || x < 0) {
+                dx = -dx;
+                movingText.style.color = getRandomColor();
+                movingText.style.backgroundColor = getRandomColor();
+            }
+            if (y + movingText.offsetHeight > window.innerHeight || y < 0) {
+                dy = -dy;
+                movingText.style.color = getRandomColor();
+                movingText.style.backgroundColor = getRandomColor();
+            }
+            requestAnimationFrame(moveText);
+        }
+
+        function getRandomColor() {
+            const letters = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+
+        moveText();
+    </script>
+</body>
+</html>

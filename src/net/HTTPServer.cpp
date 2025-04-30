@@ -4,7 +4,6 @@
 #include "HTTPResponse.hpp"
 #include "ClientConnection.hpp"
 
-// Constructor: inizializza config e socket di ascolto
 HTTPServer::HTTPServer(const Config &config) : _config(config) {
 	initSockets();
 }
@@ -121,112 +120,6 @@ bool HTTPServer::findLocationCheckAuto(Server& Server, std::string location)
 	return (false);
 }
 
-/*
-    void HTTPServer::handleGetRequest(const HTTPRequest& request, HTTPResponse& response) {
-    std::stringstream filepath;
-    Server& server =  getServerByHost(request, _config);
-    if(request.uri.size() == 1)
-        filepath << server.root[0] << request.uri  << server.index[0];
-    else{
-        try{
-            std::cout << "get location by name" << std::endl;
-            Location& location = getLocationByName(request.uri, server);
-            std::cout << "founded location" << std::endl;
-            filepath << server.root[0] << request.uri << "/" << location.l_index[0];
-        }
-        catch(std::exception& e){
-            std::cout << e.what();
-            filepath << server.root[0] << request.uri << "/" << server.index[0];
-        }
-
-    }
-    std::cout << "\t\tla path per il file da trovare" << filepath.str() << std::endl;
-    try {
-        std::string content = readFile(filepath.str());
-        response.setStatus(200, "OK");
-        response.body = content;
-    }
-    catch (std::exception& e){
-        std::cout << e.what() << std::endl;
-        response.setStatus(404, "Not Found");
-        try{
-            std::string errorPath = server.getErrorPage("404");
-            std::string errorContent = readFile(errorPath);
-            response.body = errorContent;
-        }
-        catch(std::exception& e){
-            std::cout << e.what() <<std::endl;
-            response.body = "<html><body><h1>File Not Found</h1><p>default error page a specific one are not provided in config file</p></body></html>";
-        }
-        return;
-    }
-    return;
-}
-*/
-
-// Gestisce le richieste GET
-// void HTTPServer::handleGetRequest(const HTTPRequest& request, HTTPResponse& response) {
-//     // seleziona il server in base all'host della richiesta
-//     Server& server = getServerByHost(request, _config);
-
-//     std::string fullpath = server.root[0] + request.uri;
-//     std::cout << "\t\t[GET] base path: " << fullpath << std::endl;
-
-//     struct stat st;
-//     // verifica se il path è una directory
-//     if (stat(fullpath.c_str(), &st) == 0 && S_ISDIR(st.st_mode)) {
-//         // Se è directory, assicuriamoci di avere lo slash finale
-//         if (request.uri[request.uri.size() - 1] != '/')
-//         {
-//             response.setStatus(301, "Moved Permanently");
-//             response.setHeader("Location", request.uri + "/");
-//             return;
-//         }
-
-//         try {
-//             std::cout << "get location by name" << std::endl;
-//             Location& location = getLocationByName(request.uri.substr(0, (request.uri.size() -1)), server);
-//             fullpath += location.l_index[0];
-//         }
-//         catch(std::exception& e){
-//             std::cout << e.what() << std::endl;
-//             fullpath += server.index[0];
-//         }
-//         std::cout << "\t\t[GET] directory → path: " << fullpath << std::endl;
-//     }
-
-//     try {
-//         std::string content = readFile(fullpath);
-//         response.setStatus(200, "OK");
-//         response.body = content;
-//     }
-//     catch (std::exception& e)
-//     {
-//         std::cerr << "[GET] errore readFile: " << e.what() << std::endl;
-//         response.setStatus(404, "Not Found");
-//         try 
-//         {
-//             std::string errorPage = server.getErrorPage("404");
-// 			if (findLocationCheckAuto(server, request.uri))
-// 			{
-// 				std::cout << "findLocChechkouto ok\n";
-// 				response.body = dirTree(fullpath.substr(0, fullpath.size() - server.index[0].size() - 1), 0);
-// 			}
-// 			else
-// 			{
-// 				std::cout << "findLocChechkouto false\n";
-// 				response.body = readFile(errorPage);
-// 			}
-// 			std::cout << "mcamilli'sprove pe capi il codice----------> non ho trovato l'index a uri "<< fullpath.substr(0, fullpath.size() - server.index[0].size() - 1) << "\n";
-
-//         } catch (...) 
-//         {
-//             response.body = "<html><body><h1>404 Not Found</h1>"
-//                             "<p>File not found!.</p>"
-//                             "</body></html>";
-//         }
-//     }
-// }
 
 void HTTPServer::handleGetRequest(const HTTPRequest& request, HTTPResponse& response) {
     // seleziona il server in base all'host della richiesta
@@ -238,7 +131,6 @@ void HTTPServer::handleGetRequest(const HTTPRequest& request, HTTPResponse& resp
     struct stat st;
     // verifica se il path è una directory
     if (stat(fullpath.c_str(), &st) == 0 && S_ISDIR(st.st_mode)) {
-        // Se è directory, assicuriamoci di avere lo slash finale
         if (request.uri[request.uri.size() - 1] != '/')
         {
             response.setStatus(301, "Moved Permanently");
@@ -331,7 +223,7 @@ void HTTPServer::handlePostRequest(HTTPRequest& request, HTTPResponse& response)
     }
     std::string fullpath = uploadDir + fileName;
     std::cout << fullpath << std::endl;
-    std::cout << "server max body size: " << server.client_max_body_size[0]<< " COntent size" << i << std::endl;
+    std::cout << "server max body size: " << server.client_max_body_size[0]<< " Content size" << i << std::endl;
     try {
         std::ofstream outFile(fullpath.c_str(), std::ios::binary);
         outFile.write(request.body.data(), request.body.size());
@@ -444,13 +336,25 @@ bool HTTPServer::handleClientRequest(ClientConnection *clientConn, const std::st
     }
 
     // Impostazione dello status in base al metodo della richiesta
+    bool allowed = methodIsAllowed(request.uri, request.method, getServerByHost(request, _config));
     if (request.method != "GET" && request.method != "POST" && request.method != "DELETE")
         response.setStatus(400, "Bad Request");
     else
         response.setStatus(200, "OK");
-
+    if (!allowed){
+        response.setStatus(405, "Method not Allowed");
+        try {
+            std::string errorPage = (getServerByHost(request, _config)).getErrorPage("405");
+            response.body =  readFile(errorPage);
+        }
+        catch (std::exception& e){
+            response.body = "<html><body><h1>405 Forbidden</h1>"
+                        "<p>default error page for 405 error.</p>"
+                        "</body></html>";
+        }
+    }
     // Esecuzione CGI se richiesto tramite "cgi-bin" nell'URI
-    if (request.uri.find("cgi-bin") != std::string::npos) {
+    else if (request.uri.find("cgi-bin") != std::string::npos) {
         CGIHandler cgi(request.uri);
         try {
             response.body = cgi.executeScript(request.method, request.body);
