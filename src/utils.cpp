@@ -24,7 +24,6 @@ Server& getServerByHost(const HTTPRequest& request, const Config & config){
     std::string Host = getHeaderValue("Host", request);
     std::size_t pos = Host.find(":");
     int port = atoi((Host.substr(pos + 1)).c_str());
-    std::cout << "valore trovato dalla funzione getServerByHost: "<< port << std::endl;
     size_t i = 0;
     while(i < (*config.servers).size()){
          if((*config.servers)[i].listen[0] == port){
@@ -108,6 +107,31 @@ Location&  getLocationByName(std::string path, Server& server){
         }
     }
     throw std::runtime_error("no location founded");
+}
+
+
+bool methodIsAllowed(std::string uri, std::string method, Server& server){
+    if (uri == "/")
+        return true;
+    else{
+        if (uri[uri.size()-1] == '/'){
+            uri = uri.substr(0, uri.size() - 1);
+        }
+        try{
+            Location& location = getLocationByName(uri, server);
+            if(location.l_methods.size() == 0)
+            return true;
+            for (size_t i = 0; i < location.l_methods.size(); i++){
+                if (location.l_methods[i] == method)
+                return true;
+            }
+        }
+        catch (std::exception& e){
+            return true;
+        }
+        
+    }
+    return false;
 }
 
 

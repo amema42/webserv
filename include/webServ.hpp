@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   webServ.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mcamilli <mcamilli@student.42.fr>          +#+  +:+       +#+        */
+/*   By: jacopo <jacopo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/19 15:06:40 by jacopo            #+#    #+#             */
-/*   Updated: 2025/04/29 23:17:04 by mcamilli         ###   ########.fr       */
+/*   Updated: 2025/04/30 15:38:40 by jacopo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,5 +95,6 @@ void printMap(std::map<std::string, std::string>& map, std::string first, std::s
 std::string getHeaderValue(const std::string toFind, const HTTPRequest& request);
 std::string CreateFileName(HTTPRequest& request);
 Location&  getLocationByName(std::string path, Server& server);
+bool methodIsAllowed(std::string uri, std::string method, Server& server);
 
 #endif // WEBSERV_hpp
