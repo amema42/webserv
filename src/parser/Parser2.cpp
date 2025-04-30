@@ -381,9 +381,9 @@ bool check_error_code(std::map<std::string, std::string>& error_map, const std::
 }
 
 //controlla che il codice inserito di redirect sia giusto e che non ci siano due codici
-bool check_redirect_code(std::map<std::string, std::string>& redirect_map, const std::string& redirect_code)
+bool check_redirect_code(std::vector<std::string>& redirect, const std::string& redirect_code)
 {
-	if (!redirect_map.empty())
+	if (!redirect.empty())
 	{
 		std::cout << "you already have a redirection in this location: '" << redirect_code << "' is one too many ";
 		return false;
@@ -420,9 +420,11 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
     int n_line = 0;
     while (std::getline(file, line) && ++n_line)
     {
+
         std::istringstream iss(line);
         std::string Word;
-
+		// if ((Word.c_str())[0] != '#')
+		// {
         while (iss >> Word)
 		{
 
@@ -490,8 +492,9 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
 								look_for = ERROR;
 								std::cout << "syntax error at line " << n_line
 								<< ": watch out for '" << Word
-								<< "' repetition in your conf\n";
+								<< "' repetition in your confo\n";
 							}
+							
                 		}
 						else
 						{
@@ -640,14 +643,14 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
 						}
                 		else if ((look_for = ParseWord(look_for, Word))) //cambia look for in base a cio che trova, se trova 0 è errore
                 		{
-							if (!servers.back().location.back().setNumberToZero(look_for)) //se trova due volte lo stesso campo va in errore
-							{
-								look_for = ERROR;
-								std::cout << "syntax error at line " << n_line
-								<< ": watch out for '" << Word
-								<< "' repetition in your conf\n";
-								break;
-							}
+							// if (!servers.back().location.back().setNumberToZero(look_for)) //se trova due volte lo stesso campo va in errore
+							// {
+							// 	look_for = ERROR;
+							// 	std::cout << "syntax error at line " << n_line
+							// 	<< ": watch out for '" << Word
+							// 	<< "' repetition in your conf\n";
+							// 	break;
+							// }
                     		break;
                 		}
 						else
@@ -686,7 +689,7 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
 					{	
 						std::string redirection_code = Word;
     					std::string redirection_page;
-						if(!check_redirect_code(servers.back().location.back().redirect_page, redirection_code))  //-controlla che ci sia l'error giusto e che non sia gia stato fatto
+						if(!check_redirect_code(servers.back().location.back().redirect_page, redirection_code))  
 						{
 							std::cout << " syntax error at line " << n_line << std::endl;
 							look_for = ERROR;
@@ -709,7 +712,8 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
 							std::cout << "syntax error: no closed semicolon at line " << n_line << "\n";
 							break;
 						}
-						servers.back().location.back().redirect_page[redirection_code] = redirection_page;
+						servers.back().location.back().redirect_page.push_back(redirection_code);
+						servers.back().location.back().redirect_page.push_back(redirection_page);
 						break;
 					}
 					case AUTOINDEX:
@@ -786,10 +790,12 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
                 		file.close();
                 		return 0;
     		}
+		
 			 std::cout << "look for =" << look_for << "sono uscito dallo switch\n";
 			std::cout << "------->" << Word << " è la parola con cui sono uscito at line " << n_line << " \n";
 
         }
+		// }
     }
 	//funzione che controlli non ci siano ripetizioni di server name
 	//funzione che controlli non ci siano ripetizioni di port nei vari server

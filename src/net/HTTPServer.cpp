@@ -73,7 +73,7 @@ void HTTPServer::initSockets() {
         int sockfd = socket(AF_INET, SOCK_STREAM, 0);
         if (sockfd < 0)
             throw std::runtime_error("Error in socket creation.");
-		 // Add this code to enable address reuse
+		 // per non farlo crashare quando si riapre webserv
 		 int optval = 1;
 		 if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)) < 0) 
 		 {
@@ -237,19 +237,33 @@ void HTTPServer::handleGetRequest(const HTTPRequest& request, HTTPResponse& resp
 
     struct stat st;
     // verifica se il path è una directory
-    if (stat(fullpath.c_str(), &st) == 0 && S_ISDIR(st.st_mode)) {
+    if (stat(fullpath.c_str(), &st) == 0 && S_ISDIR(st.st_mode)) 
+	{
         // Se è directory, assicuriamoci di avere lo slash finale
         if (request.uri[request.uri.size() - 1] != '/')
         {
-            response.setStatus(301, "Moved Permanently");
+            response.setStatus(301, "Moved Permanently");//dir senza slash genera questa respond in nginx
             response.setHeader("Location", request.uri + "/");
             return;
         }
 
         try {
+			
             std::cout << "get location by name" << std::endl;
             Location& location = getLocationByName(request.uri.substr(0, (request.uri.size() -1)), server);
             fullpath += location.l_index[0];
+			if(!location.redirect_page.empty())
+			{
+				if (location.redirect_page[0] == "301")
+					response.setStatus(301, "Moved Permanently");//dir senza slash genera questa respond in nginx
+				else
+					response.setStatus(302, "Moved Temporary");
+				if (location.redirect_page[1][location.redirect_page[1].size() - 1] != '/')
+           			response.setHeader("Location", location.redirect_page[1] + "/");
+				else
+					response.setHeader("Location", location.redirect_page[1]);
+				return;
+			}
         }
         catch(std::exception& e){
             std::cout << e.what() << std::endl;
@@ -257,7 +271,6 @@ void HTTPServer::handleGetRequest(const HTTPRequest& request, HTTPResponse& resp
         }
         std::cout << "\t\t[GET] directory → path: " << fullpath << std::endl;
     }
-
     try {
         std::string content = readFile(fullpath);
         response.setStatus(200, "OK");

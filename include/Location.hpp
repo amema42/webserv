@@ -17,7 +17,7 @@ class Location
         std::vector<std::string> l_methods;
         std::vector<std::string> l_upload_store;
 		std::vector<size_t> l_client_max_body_size;
-		std::map<std::string, std::string> redirect_page;
+		std::vector<std::string> redirect_page;
         
 
         ~Location(); //def dest

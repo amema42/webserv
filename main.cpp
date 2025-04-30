@@ -35,7 +35,7 @@ int main(int ac, char **av){
 			std::cout << "\t  |-root:  " << mcamilli((*config.servers)[i].location[j].l_root) << std::endl;
 			std::cout << "\t  |-l_index " << mcamilli((*config.servers)[i].location[j].l_index) << std::endl;
 			std::cout << "\t  |-autoindex " << servers[i].location[j].autoindex << std::endl;
-			printMap((*config.servers)[i].location[j].redirect_page, "   |-redirection code: ", "page: ");
+			//printMap((*config.servers)[i].location[j].redirect_page, "   |-redirection code: ", "page: ");
 		}
 	}
 	try{
