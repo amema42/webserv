@@ -423,8 +423,13 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
 
         std::istringstream iss(line);
         std::string Word;
-		// if ((Word.c_str())[0] != '#')
-		// {
+		size_t i = 0;
+    	while (i < line.length() && std::isspace(line[i])) 
+		{
+       		++i;
+		}
+	if ((line.c_str())[i] != '#')
+	{
         while (iss >> Word)
 		{
 
@@ -795,7 +800,7 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
 			std::cout << "------->" << Word << " è la parola con cui sono uscito at line " << n_line << " \n";
 
         }
-		// }
+		}
     }
 	//funzione che controlli non ci siano ripetizioni di server name
 	//funzione che controlli non ci siano ripetizioni di port nei vari server

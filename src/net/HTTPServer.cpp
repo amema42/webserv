@@ -106,15 +106,23 @@ void HTTPServer::initSockets() {
 }
 
 //controlla tutte le location e i rispettivi path ritorna true se autoindex_flag è true
-bool HTTPServer::findLocationCheckAuto(Server& Server, std::string location)
+bool HTTPServer::findLocationCheckAuto(Server& Server, std::string path)
 {
 	int i = 0;
 	//std::cout << "----------------->debug: " << Server.location.size() << "\n";
 	while (i < static_cast<int>(Server.location.size()))
 	{
+		if (Server.location[i].path[0][Server.location[i].path[0].size() - 1] != '/')
+		{
+			if (Server.location[i].path[0] == path.substr(0, path.size() - 1))
+				return (Server.location[i].autoindex_flag);
+		}
+		else
+		{
+			if (Server.location[i].path[0] == path.substr(0, path.size()))
+				return (Server.location[i].autoindex_flag);
+		}
 		//std::cout << "----------------->debug: " << Server.location[i].path[0] << "\n";
-		if (Server.location[i].path[0] == location.substr(0, location.size() - 1))
-			return (Server.location[i].autoindex_flag);
 		i++;
 	}
 	return (false);
