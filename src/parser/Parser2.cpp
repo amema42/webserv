@@ -795,18 +795,9 @@ int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& server
                 		file.close();
                 		return 0;
     		}
-		
-			 std::cout << "look for =" << look_for << "sono uscito dallo switch\n";
-			std::cout << "------->" << Word << " è la parola con cui sono uscito at line " << n_line << " \n";
-
         }
 		}
     }
-	//funzione che controlli non ci siano ripetizioni di server name
-	//funzione che controlli non ci siano ripetizioni di port nei vari server
-	//funzione che controlli non ci siano ripetizioni di path per le location di ogni server(?)
-	//funzione che controlli le error page siano corrette;
-	//eventualmente inserendo questi controlli nello switch case potremmo dire all'utente a che riga sta l'errore
 
     file.close();
     return 1;

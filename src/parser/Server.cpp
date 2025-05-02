@@ -64,11 +64,10 @@ bool Server::setNumberToZero(int number)
     return false;
 }
 
-std::string Server::getErrorPage(std::string value)
-{
-
-    std::map<std::string, std::string>::iterator it =  error_page.find(value);
-    if(it != error_page.end())
-        return (it->second);
-    throw std::runtime_error("no errr page for code: " + value);
+std::string Server::getErrorPage(const std::string& code) const {
+    std::map<std::string, std::string>::const_iterator it = error_page.find(code);
+    if (it != error_page.end()) {
+        return it->second;
+    }
+    throw std::runtime_error("Error page not found for code: " + code);
 }

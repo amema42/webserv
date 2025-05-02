@@ -1,6 +1,8 @@
 #include "CGIHandler.hpp"
 
-CGIHandler::CGIHandler(){}
+CGIHandler::CGIHandler(){
+	_cgipath = "basic init";
+}
 
 CGIHandler::CGIHandler(std::string rawpath): _rawPath(rawpath) {
     std::cout << "--- constructo debug infos ---" << std::endl;
@@ -53,13 +55,15 @@ std::string CGIHandler::executeScript(const std::string& method, const std::stri
         close(stdinPipe[1]);
 
         // Leggi l'output dalla pipe di output
-        close(stdoutPipe[1]);
-        char buffer[4096];
-        std::string output;
-        while (read(stdoutPipe[0], buffer, sizeof(buffer)) > 0) {
-            output += buffer;
-        }
-        close(stdoutPipe[0]);
+        // Leggi l'output dalla pipe di output
+		close(stdoutPipe[1]);
+		char buffer[4096];
+		std::string output;
+		int bytesRead;
+		while ((bytesRead = read(stdoutPipe[0], buffer, sizeof(buffer))) > 0) {
+		    output.append(buffer, bytesRead); // Append only the read bytes
+		}
+		close(stdoutPipe[0]);
 
         waitpid(pid, NULL, 0); // Attendi la terminazione
         return output;

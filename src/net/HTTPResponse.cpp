@@ -35,3 +35,7 @@ std::string HTTPResponse::toString() const {
     oss << body;
     return oss.str();
 }
+
+std::map<std::string, std::string>& HTTPResponse::getHeaders(){
+	return this->headers;
+}

@@ -155,14 +155,17 @@ void HTTPServer::handleGetRequest(const HTTPRequest& request, HTTPResponse& resp
             fullpath += location.l_index[0];
 			if(!location.redirect_page.empty())
 			{
-				if (location.redirect_page[0] == "301")
+				if (location.redirect_page[0] == "301"){
 					response.setStatus(301, "Moved Permanently");//dir senza slash genera questa respond in nginx
+				}
 				else
-					response.setStatus(302, "Moved Temporary");
-				if (location.redirect_page[1][location.redirect_page[1].size() - 1] != '/')
-           			response.setHeader("Location", location.redirect_page[1] + "/");
+				response.setStatus(302, "Moved Temporary");
+				if (location.redirect_page[1][location.redirect_page[1].size() - 1] != '/'){
+					response.setHeader("Location", location.redirect_page[1] + "/");
+					printMap(response.getHeaders(), "primo", "secondo");
+				}
 				else
-					response.setHeader("Location", location.redirect_page[1]);
+				response.setHeader("Location", location.redirect_page[1]);
 				return;
 			}
         }
@@ -192,7 +195,6 @@ void HTTPServer::handleGetRequest(const HTTPRequest& request, HTTPResponse& resp
 			}
 			else
 			{
-				std::cout << "false, no autoindex\n";
 				response.body = readFile(errorPage);
 			}
 			//codice autoindex finisce qui
@@ -212,17 +214,20 @@ void HTTPServer::handlePostRequest(HTTPRequest& request, HTTPResponse& response)
     Server& server =  getServerByHost(request, _config);
     size_t i = std::strtol((getHeaderValue("Content-Length", request)).c_str(), NULL, 10);
     if(i > server.client_max_body_size[0]){
-        try{
-            std::string errorPath = server.getErrorPage("413");
-            std::string errorContent = readFile(errorPath);
-            response.body = errorContent;
-        }
-        catch(std::exception& e){
-            std::cout << e.what() <<std::endl;
-            response.body = "<html><body><h1>File Not Found</h1><p>default error page  error:413 a specific one are not provided in config file</p></body></html>";
-        }
-        return;
-    }
+		try{
+			response.setStatus(413, "Payload Too Large"); // Fix capitalization of "payload"
+			std::string errorPath = server.getErrorPage("413");
+			std::cout << "Trying to load 413 error page from: " << errorPath << std::endl;
+			std::string errorContent = readFile(errorPath);
+			response.body = errorContent;
+			std::cout << "413 error page loaded successfully" << std::endl;
+		}
+		catch(std::exception& e){
+			std::cout << "Failed to load 413 error page: " << e.what() << std::endl;
+			response.body = "<html><body><h1>File Not Found</h1><p>default error page error:413 a specific one are not provided in config file</p></body></html>";
+		}
+		return;
+	}
     
     std::string fileName = CreateFileName(request);
     std::string uploadDir = server.root[0] + "/uploads/";
