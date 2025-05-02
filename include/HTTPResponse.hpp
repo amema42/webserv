@@ -24,6 +24,8 @@ public:
 
     // Metodo helper per (1) aggiungere o (2) modificare un header
     void setHeader(const std::string &key, const std::string &value);
+
+	std::map<std::string, std::string>& getHeaders();
 };
 
 #endif

@@ -530,43 +530,47 @@
     
     // Form submit handling
     form.addEventListener('submit', (e) => {
-      e.preventDefault();
-      
-      if (!hasFile) {
-        alert('Please select a file to upload');
-        return;
-      }
-      
-      // Show progress bar
-      progressBarContainer.style.display = 'block';
-      
-      // Simulate upload
-      let progress = 0;
-      const interval = setInterval(() => {
-        progress += 5;
-        progressBar.style.width = `${progress}%`;
-        
-        if (progress >= 100) {
-          clearInterval(interval);
-          
-          // Show success message after a small delay
-          setTimeout(() => {
-            uploadSuccess.style.display = 'block';
-            
-            // Reset after 3 seconds
-            setTimeout(() => {
-              resetSelection();
-              progressBarContainer.style.display = 'none';
-              progressBar.style.width = '0%';
-              uploadSuccess.style.display = 'none';
-              document.getElementById('description').value = '';
-            }, 3000);
-          }, 300);
-        }
-      }, 100);
-      
-      // In production, this would be an actual POST request to the server
+  e.preventDefault();
+  
+  if (!hasFile) {
+    alert('Please select a file to upload');
+    return;
+  }
+  
+  // Show progress bar
+  progressBarContainer.style.display = 'block';
+  
+  // Create FormData object
+  const formData = new FormData(form);
+  
+  // Submit the data via fetch
+  fetch('/post', {
+    method: 'POST',
+    body: formData
+  })
+  .then(response => {
+  if (!response.ok) {
+    // If status is not 200-299, it's an error
+    return response.text().then(errorHtml => {
+      // Replace the entire page content with the error page
+      document.open();
+      document.write(errorHtml);
+      document.close();
+      throw new Error(`HTTP error! Status: ${response.status}`);
     });
+  }
+  
+  // Success handling (only runs for successful responses)
+  progressBar.style.width = '100%';
+  setTimeout(() => {
+    uploadSuccess.style.display = 'block';
+    // Reset code...
+  }, 300);
+})
+.catch(error => {
+  alert('Upload failed: ' + error);
+});
+});
     
     // Detect system preference
     const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');

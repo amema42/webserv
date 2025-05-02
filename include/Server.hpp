@@ -30,7 +30,7 @@ class Server
         bool setNumberToZero(int number);
 
         // Setter e getter per i vettor
-    	std::string getErrorPage(std::string value);
+		std::string getErrorPage(const std::string& code) const;
 };
 
 #endif

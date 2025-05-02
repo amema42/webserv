@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERRORE CATASTROFICO 413!!! FILE TROPPO GRANDE!!!</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background-color: #00FFFF; /* Cyan */
+            color: #FF0000; /* Red */
+            text-align: center;
+            margin: 50px;
+            animation: expand 2s infinite alternate;
+        }
+
+        @keyframes expand {
+            from { transform: scale(1); }
+            to { transform: scale(1.05); }
+        }
+
+        h1 {
+            font-size: 5em;
+            text-decoration: underline dotted green;
+            text-shadow: 3px 3px #FFA500; /* Orange shadow */
+            margin-bottom: 0;
+        }
+
+        p {
+            font-size: 2em;
+            border: 5px ridge magenta;
+            padding: 20px;
+            background-color: #FFC0CB; /* Pink */
+            color: #8B008B; /* Dark Magenta */
+            display: inline-block;
+            margin-top: 20px;
+        }
+
+        button {
+            font-family: 'Impact', sans-serif;
+            font-size: 2em;
+            background-color: #FFD700; /* Gold */
+            color: #000080; /* Navy */
+            border: 4px dashed red;
+            padding: 15px 30px;
+            cursor: zoom-in;
+            margin-top: 30px;
+            animation: pulse 0.5s infinite alternate;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.1); }
+        }
+
+        #growingFile {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 2em;
+            color: white;
+            background-color: #FF4500; /* OrangeRed */
+            padding: 10px;
+            border-radius: 50%;
+            border: 3px solid yellow;
+            animation: grow 2s infinite;
+        }
+
+        @keyframes grow {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.5); content: "🗂️"; }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div id="growingFile">📁</div>
+    <h1>4<span style="color: blue;">1</span>3</h1>
+    <p>ALLARME! ALLARME!<br>Il file che stai cercando di caricare è GIGANTESCO!<br>È talmente grande che rischia di esplodere il server!</p>
+    <button onclick="shrinkFile()">RIMPICCIOLISCI IL FILE MAGICAMENTE!</button>
+
+    <script>
+        function shrinkFile() {
+            const body = document.body;
+            const growingFile = document.getElementById('growingFile');
+            
+            // Make file grow rapidly
+            growingFile.style.animation = 'none';
+            growingFile.style.transform = 'scale(3)';
+            growingFile.innerHTML = '💾';
+            
+            // Shake the screen
+            let shakeInterval = setInterval(() => {
+                body.style.transform = `translate(${Math.random() * 20 - 10}px, ${Math.random() * 20 - 10}px)`;
+            }, 50);
+            
+            // Stop and show message
+            setTimeout(() => {
+                clearInterval(shakeInterval);
+                body.style.transform = 'translate(0, 0)';
+                growingFile.style.transform = 'scale(1)';
+                growingFile.innerHTML = '📁';
+                growingFile.style.animation = 'grow 2s infinite';
+                alert("Impossibile! Il file è ancora troppo grande! Prova a dividere il file in parti più piccole!");
+            }, 3000);
+        }
+
+        // Move the file emoji around randomly
+        setInterval(() => {
+            const growingFile = document.getElementById('growingFile');
+            const maxX = window.innerWidth - 100;
+            const maxY = window.innerHeight - 100;
+            const newX = Math.floor(Math.random() * maxX);
+            const newY = Math.floor(Math.random() * 100); // Keep it near the top
+            
+            growingFile.style.right = 'auto';
+            growingFile.style.left = newX + 'px';
+            growingFile.style.top = newY + 'px';
+        }, 5000);
+    </script>
+</body>
+</html>

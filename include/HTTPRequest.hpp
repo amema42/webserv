@@ -20,6 +20,8 @@ public:
     // Funcs per il parsing
     void parseRequest(const std::string &rawRequest);
     bool isChunked() const;  // Transfer-Encoding: chunked
+
+
 };
 
 #endif
