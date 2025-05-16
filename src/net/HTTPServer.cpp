@@ -386,6 +386,7 @@ bool HTTPServer::handleClientRequest(ClientConnection *clientConn, const std::st
         try {
             response.body = cgi.executeScript(request.method, request.body);
         } catch (std::exception &e) {
+            std::cout << e.what() << std::endl;
             response.setStatus(500, "Internal Server Error");
             response.body = "<html><body><h1>CGI Error</h1></body></html>";
         }

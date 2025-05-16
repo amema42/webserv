@@ -15,7 +15,9 @@ class CGIHandler
     CGIHandler(std::string rawpath);
     ~CGIHandler();
     std::string executeScript(const std::string& method, const std::string& body);
-    
+    static volatile sig_atomic_t cgi_timeout_occurred;
+    static const int CGI_TIMEOUT_SECONDS = 10;
+    static void sigalrm_handler(int sig);
 
     
     

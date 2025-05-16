@@ -39,6 +39,9 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <csignal>
+#include <cstdio>
+
 
 #include "CGIHandler.hpp"
 #include "./Server.hpp" 

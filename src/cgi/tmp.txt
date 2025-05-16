@@ -1,0 +1,214 @@
+#include <string>
+#include <vector>
+#include <unistd.h>    // pipe, fork, dup2, close, read, write, execl, alarm, kill
+#include <sys/wait.h>  // waitpid
+#include <stdexcept>   // std::runtime_error
+#include <sstream>     // std::stringstream
+#include <fstream>     // std::ifstream
+#include <csignal>     // sigaction, sigemptyset, sig_atomic_t, SIGALRM
+#include <cerrno>      // errno
+#include <cstdlib>     // setenv, exit, EXIT_FAILURE, NULL
+#include <cstdio>      // perror (per debug in execl)
+
+// Assumiamo che CGIHandler e CGIerror siano definiti come segue:
+// (Se hai una definizione diversa, adattala)
+class CGIHandler {
+public:
+    class CGIerror : public std::runtime_error {
+    public:
+        CGIerror(const std::string& message) : std::runtime_error(message) {}
+    };
+
+    CGIHandler(const std::string& cgiPath, const std::string& query) 
+        : _cgipath(cgiPath), _query(query) {}
+
+    std::string executeScript(const std::string& method, const std::string& body);
+
+private:
+    std::string _cgipath;
+    std::string _query;
+
+    // Flag per indicare se il timeout è scattato.
+    // 'volatile sig_atomic_t' è sicuro per l'uso in gestori di segnali.
+    static volatile sig_atomic_t cgi_timeout_occurred;
+
+    // Gestore per il segnale SIGALRM
+    static void sigalrm_handler(int sig);
+
+    // Durata del timeout in secondi
+    static const int CGI_TIMEOUT_SECONDS = 10; // Ad esempio, 10 secondi
+};
+
+// Inizializzazione del membro statico
+volatile sig_atomic_t CGIHandler::cgi_timeout_occurred = 0;
+
+// Implementazione del gestore di segnali
+void CGIHandler::sigalrm_handler(int sig) {
+    (void)sig; // Per evitare warning di parametro non usato
+    cgi_timeout_occurred = 1;
+}
+
+std::string CGIHandler::executeScript(const std::string& method, const std::string& body) {
+    int stdoutPipe[2], stdinPipe[2];
+
+    // Controlla l'esistenza dello script prima di procedere
+    std::ifstream file_check(_cgipath.c_str());
+    if (!file_check.is_open()) {
+        throw CGIHandler::CGIerror("Unable to find CGI script: " + _cgipath);
+    }
+    file_check.close();
+
+    if (pipe(stdoutPipe) == -1 || pipe(stdinPipe) == -1) {
+        throw CGIHandler::CGIerror("Pipe creation error");
+    }
+
+    pid_t pid = fork();
+    if (pid == -1) {
+        // Chiudi le pipe create prima di lanciare l'eccezione
+        close(stdoutPipe[0]); close(stdoutPipe[1]);
+        close(stdinPipe[0]);  close(stdinPipe[1]);
+        throw CGIHandler::CGIerror("Fork process error");
+    }
+
+    if (pid == 0) { // Processo figlio (esegue lo script CGI)
+        // Redirigi stdin del figlio alla lettura da stdinPipe
+        if (dup2(stdinPipe[0], STDIN_FILENO) == -1) { perror("dup2 stdinPipe"); exit(EXIT_FAILURE); }
+        // Redirigi stdout del figlio alla scrittura su stdoutPipe
+        if (dup2(stdoutPipe[1], STDOUT_FILENO) == -1) { perror("dup2 stdoutPipe"); exit(EXIT_FAILURE); }
+        // Redirigi stderr del figlio (opzionale, potresti volerlo loggare altrove)
+        // dup2(dev_null_fd, STDERR_FILENO); // Esempio per silenziarlo
+
+        // Chiudi tutti i descrittori di pipe originali nel figlio, ora sono duplicati
+        close(stdinPipe[0]);  close(stdinPipe[1]);
+        close(stdoutPipe[0]); close(stdoutPipe[1]);
+
+        // Imposta le variabili d'ambiente per lo script CGI
+        std::stringstream contentLengthStr;
+        contentLengthStr << body.size();
+        
+        setenv("REQUEST_METHOD", method.c_str(), 1);
+        setenv("QUERY_STRING", _query.c_str(), 1);
+        setenv("CONTENT_LENGTH", contentLengthStr.str().c_str(), 1);
+        setenv("SCRIPT_FILENAME", _cgipath.c_str(), 1); // Utile per alcuni script
+        // Potresti voler aggiungere altre variabili CGI standard (es. SERVER_PROTOCOL, REMOTE_ADDR etc.)
+
+        // Esegui lo script CGI
+        execl(_cgipath.c_str(), _cgipath.c_str(), (char *)NULL);
+        
+        // Se execl ritorna, significa che c'è stato un errore
+        perror("execl failed"); // Scrive su quello che ora è lo stderr del processo padre
+        exit(EXIT_FAILURE); // Termina il processo figlio
+
+    } else { // Processo padre
+        // Chiudi le estremità non usate delle pipe nel padre
+        close(stdinPipe[0]);  // Il padre scrive su stdinPipe[1], non legge da stdinPipe[0]
+        close(stdoutPipe[1]); // Il padre legge da stdoutPipe[0], non scrive su stdoutPipe[1]
+
+        // Imposta il gestore per SIGALRM e programma l'allarme
+        struct sigaction sa;
+        sa.sa_handler = sigalrm_handler; // Imposta il nostro gestore
+        sigemptyset(&sa.sa_mask);        // Non bloccare altri segnali durante l'esecuzione del gestore
+        sa.sa_flags = 0;                 // Importante: NON impostare SA_RESTART.
+                                         // Questo assicura che le chiamate di sistema (es. read, write)
+                                         // vengano interrotte dal segnale e restituiscano EINTR.
+        if (sigaction(SIGALRM, &sa, NULL) == -1) {
+            // Errore nell'impostare il gestore, tentativo di pulizia
+            perror("sigaction failed");
+            close(stdoutPipe[0]); close(stdinPipe[1]); // Chiudi le pipe rimanenti
+            kill(pid, SIGKILL);    // Tenta di terminare il processo figlio
+            waitpid(pid, NULL, 0); // Raccogli il figlio per evitare zombie
+            throw CGIHandler::CGIerror("Failed to set SIGALRM handler");
+        }
+        
+        cgi_timeout_occurred = 0; // Resetta il flag di timeout prima di iniziare le operazioni
+        alarm(CGI_TIMEOUT_SECONDS);  // Imposta l'allarme
+
+        // Scrivi il corpo della richiesta (se presente) allo stdin dello script CGI
+        if (!body.empty()) {
+            ssize_t bytes_written = write(stdinPipe[1], body.c_str(), body.size());
+            if (bytes_written == -1) {
+                alarm(0); // Disattiva l'allarme
+                close(stdoutPipe[0]); // Chiudi l'altra pipe
+                close(stdinPipe[1]);  // Questa pipe è già problematica o chiusa
+                if (errno == EINTR && cgi_timeout_occurred) {
+                    kill(pid, SIGKILL); waitpid(pid, NULL, 0);
+                    throw CGIHandler::CGIerror("CGI script timed out during stdin write");
+                }
+                // Altro errore durante la scrittura
+                kill(pid, SIGKILL); waitpid(pid, NULL, 0);
+                throw CGIHandler::CGIerror("Error writing to CGI script stdin");
+            }
+        }
+        // Chiudi l'estremità di scrittura dello stdin del figlio.
+        // Questo invierà EOF allo script CGI quando avrà letto tutto il body.
+        close(stdinPipe[1]);
+
+        // Leggi l'output dallo stdout dello script CGI
+        std::string output;
+        char buffer[4096]; // Buffer per la lettura
+        ssize_t bytesRead;
+
+        while (true) {
+            bytesRead = read(stdoutPipe[0], buffer, sizeof(buffer)); // Leggi i dati
+            
+            if (bytesRead > 0) {
+                output.append(buffer, bytesRead); // Aggiungi i dati letti all'output
+            } else if (bytesRead == 0) {
+                // EOF (End Of File) - lo script CGI ha chiuso il suo stdout.
+                // Lettura completata con successo.
+                break; 
+            } else { // bytesRead < 0, errore o interruzione
+                if (errno == EINTR) {
+                    // La read è stata interrotta da un segnale.
+                    // Controlla se è stato il nostro segnale di timeout.
+                    if (cgi_timeout_occurred) {
+                        // Sì, il timeout è scattato. Esci dal loop di lettura.
+                        // La gestione del timeout avverrà dopo il loop.
+                        break;
+                    }
+                    // Se non è stato il nostro timeout, era un altro segnale.
+                    // Riprova la lettura.
+                    continue;
+                } else {
+                    // Si è verificato un errore di lettura diverso da EINTR.
+                    alarm(0); // Disattiva l'allarme prima di lanciare
+                    close(stdoutPipe[0]);
+                    kill(pid, SIGKILL);    // Tenta di terminare il figlio
+                    waitpid(pid, NULL, 0); // Raccogli
+                    throw CGIHandler::CGIerror("Read error from CGI script stdout");
+                }
+            }
+        }
+        
+        // Abbiamo finito di leggere o siamo stati interrotti. Disattiva qualsiasi allarme pendente.
+        alarm(0);
+        close(stdoutPipe[0]); // Chiudi l'estremità di lettura della pipe di output
+
+        int status; // Per lo stato di terminazione del figlio
+        if (cgi_timeout_occurred) {
+            // Il timeout è scattato durante l'attesa dell'output dello script.
+            // Termina forzatamente il processo figlio.
+            kill(pid, SIGKILL); // SIGKILL è più drastico, ma assicura la terminazione
+            waitpid(pid, NULL, 0); // Raccogli il processo figlio (evita zombie)
+            throw CGIHandler::CGIerror("CGI script execution timed out");
+        } else {
+            // Nessun timeout. Attendi la terminazione normale del processo figlio.
+            if (waitpid(pid, &status, 0) == -1) {
+                // Errore in waitpid (raro se la logica è corretta)
+                throw CGIHandler::CGIerror("waitpid error after CGI script execution");
+            }
+
+            // Opzionale: puoi controllare lo stato di uscita dello script CGI
+            // if (WIFEXITED(status)) {
+            //     int exit_code = WEXITSTATUS(status);
+            //     if (exit_code != 0) {
+            //         // Lo script è terminato con un codice di errore
+            //         // Potresti voler gestire questo caso, es. loggando l'output parziale
+            //     }
+            // } else if (WIFSIGNALED(status)) {
+            //     // Lo script è stato terminato da un segnale (non il nostro timeout)
+            // }
+        }
+        return output;
+    }
+}
