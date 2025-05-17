@@ -15,7 +15,7 @@ std::string HTTPServer::dirTree(const std::string& dirPath, int depth) //partire
 	DIR *dir;
 	struct dirent *ent;
 	std::stringstream html;
-
+    std::cout << dirPath << std::endl;
 	if ((dir = opendir(dirPath.c_str())) != NULL)
 	{
 		if (depth == 0)
@@ -109,7 +109,7 @@ void HTTPServer::initSockets() {
 bool HTTPServer::findLocationCheckAuto(Server& Server, std::string path)
 {
 	int i = 0;
-	//std::cout << "----------------->debug: " << Server.location.size() << "\n";
+    std::cout << "----------------->debug: " << Server.server_name[0] << "\n";
 	while (i < static_cast<int>(Server.location.size()))
 	{
 		if (Server.location[i].path[0][Server.location[i].path[0].size() - 1] != '/')
@@ -122,7 +122,7 @@ bool HTTPServer::findLocationCheckAuto(Server& Server, std::string path)
 			if (Server.location[i].path[0] == path.substr(0, path.size()))
 				return (Server.location[i].autoindex_flag);
 		}
-		//std::cout << "----------------->debug: " << Server.location[i].path[0] << "\n";
+		std::cout << "----------------->debug: " << Server.location[i].path[0] << "\n";
 		i++;
 	}
 	return (false);
@@ -186,15 +186,17 @@ void HTTPServer::handleGetRequest(const HTTPRequest& request, HTTPResponse& resp
         response.setStatus(404, "Not Found");
         try 
         {
-			std::string errorPage = server.getErrorPage("404");
-			//codice autoindex inizia qui
+            
+            //codice autoindex inizia qui
 			if (findLocationCheckAuto(server, request.uri))
 			{
-				response.setStatus(200, "OK");
-				response.body = dirTree(fullpath.substr(0, fullpath.size() - server.index[0].size() - 1), 0);
+                response.setStatus(200, "OK");
+                Location& location2 = getLocationByName(request.uri.substr(0, (request.uri.size() -1)), server);
+				response.body = dirTree(fullpath.substr(0, fullpath.size() - location2.l_index[0].size() - 1), 0);
 			}
 			else
 			{
+                std::string errorPage = server.getErrorPage("404");
 				response.body = readFile(errorPage);
 			}
 			//codice autoindex finisce qui
