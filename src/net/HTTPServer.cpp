@@ -386,6 +386,7 @@ bool HTTPServer::handleClientRequest(ClientConnection *clientConn, const std::st
         try {
             response.body = cgi.executeScript(request.method, request.body);
         } catch (std::exception &e) {
+            std::cout << e.what() << std::endl;
             response.setStatus(500, "Internal Server Error");
             response.body = "<html><body><h1>CGI Error</h1></body></html>";
         }
@@ -412,9 +413,9 @@ bool HTTPServer::handleClientRequest(ClientConnection *clientConn, const std::st
     std::string respStr = response.toString();
     ssize_t sent = write(clientConn->getFd(), respStr.c_str(), respStr.size());
     if (sent < 0) {
-        std::cerr << "Errore in write(): " << strerror(errno) << std::endl;
+        std::cerr << "Errore in write(): " << std::endl;
     }
-
+	if (sent >= 0) {
     // Gestione keep-alive o chiusura connessione
     if (clientWantsKeepAlive) {
         size_t headerEnd = rawRequest.find("\r\n\r\n");
@@ -430,6 +431,7 @@ bool HTTPServer::handleClientRequest(ClientConnection *clientConn, const std::st
         close(clientConn->getFd());
         return false;
     }
+	}
 }
 
 extern "C" void signalHandler(int signum) {
