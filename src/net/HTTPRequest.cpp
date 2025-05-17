@@ -26,8 +26,7 @@ void HTTPRequest::parseRequest(const std::string &rawRequest) {
     // Cerca la fine degli header: "\r\n\r\n"
     std::size_t pos = rawRequest.find("\r\n\r\n");
     if (pos == std::string::npos) {
-        // Qui, in un'applicazione reale, potresti decidere di attendere altri dati.
-        // Per ora, usciamo dalla funzione o asegnaliamo un errore.
+
         return;
     }
     // La parte degli header termina in pos + 4
@@ -35,8 +34,7 @@ void HTTPRequest::parseRequest(const std::string &rawRequest) {
     // Il body (se presente) inizia dopo "\r\n\r\n"
     std::string bodyPart = rawRequest.substr(pos + 4);
 
-    // --- Parsing della Request Line ---
-    // La prima linea degli headerPart è la request line
+
     std::istringstream headerStream(headerPart);
     std::string requestLine;
     std::getline(headerStream, requestLine);
@@ -52,7 +50,6 @@ void HTTPRequest::parseRequest(const std::string &rawRequest) {
     while (std::getline(headerStream, line)) {
         if (line.empty() || line == "\r")
             continue;
-        // Rimuovi il \r finale, se presente
         if (!line.empty() && line[line.size() - 1] == '\r')
             line.erase(line.size() - 1);
 
@@ -61,7 +58,6 @@ void HTTPRequest::parseRequest(const std::string &rawRequest) {
         if (colonPos != std::string::npos) {
             std::string key = line.substr(0, colonPos);
             std::string value = line.substr(colonPos + 1);
-            // Rimuovi spazi iniziali e finali
             key.erase(0, key.find_first_not_of(" \t"));
             key.erase(key.find_last_not_of(" \t") + 1);
             value.erase(0, value.find_first_not_of(" \t"));
@@ -72,18 +68,15 @@ void HTTPRequest::parseRequest(const std::string &rawRequest) {
 
     // --- Body ---
     std::map<std::string, std::string>::iterator it = headers.find("Content-Length");
-    //questo è un doppio controllo client connection si occupa di controllare la richiesta
-    //ma lo lasciamo per sicurezza
 
     if (it != headers.end()) {
         int contentLength = std::atoi(it->second.c_str());
         if (static_cast<int>(bodyPart.size()) >= contentLength)
             body = bodyPart.substr(0, contentLength);
         else
-            body = bodyPart;  // oppure gestire l'errore
+            body = bodyPart;
     }
     else if (isChunked()) {
-        // non gestiamo le richieste chunked per davvero
         body = bodyPart;
     }
     else

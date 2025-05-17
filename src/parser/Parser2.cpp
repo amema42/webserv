@@ -4,12 +4,6 @@
 #include <iostream>
 #include <vector>
 #include <string>
-/*
-
-*/
-
-
-
 
 int ParseWord(int look_for, std::string Word)
 {
@@ -80,7 +74,7 @@ int ParseWord(int look_for, std::string Word)
             return L_UPLOAD_STORE_ARG;
 		}
     }
-    return ERROR;//non ha trovato la parola che si aspettava
+    return ERROR;//non ha trovato la parola che si aspettava 
 }
 
 
@@ -88,21 +82,22 @@ bool endsWithSemicolon(const std::string& word)
 {
     if (word.empty())
 	{
-        return false; //torn
+        return false;
     }
     return (word[word.size() - 1] == ';');
 }
 
 
 /*
-mette nei rispettivi vettori dei field gli argomenti.
-controlla se ci sono troppi argomenti in base al field
-(ad esempio index puo averne infiniti, root solo uno)
-semicolon definisce se ha smesso di inserire argomenti o no.
-per controllare il numero confronta il numero di argomenti nel
-vettore con l'ultima cofra del "look_for" attuale
-nell'ultima cifra del look_for attuale c'è scritto quanti argomenti puo accettare
-quel field ad esempio root finisce con 1, error page finisce con 2
+This function inserts arguments into the respective field vectors based on the current context (`look_for`).
+It validates the number of arguments allowed for each field by comparing the size of the vector with the last digit of the `look_for` value.
+For example:
+- `root` can accept only one argument (last digit is 1).
+- `error_page` can accept two arguments (last digit is 2).
+- `index` can accept an unlimited number of arguments (last digit is 9).
+
+The presence of a semicolon (`;`) determines whether argument insertion has concluded for the current field.
+If the number of arguments exceeds the allowed limit or other syntax issues are detected, the function reports an error.
 */
 bool insertArgInField(std::string& Word, int look_for, std::vector<std::string>& args, int n_line)
 {
@@ -147,8 +142,10 @@ bool insertArgInIndex(std::string& Word, std::vector<std::string>& args)
 }
 
 /*
-stessa cosa di insertArgInField ma per i Metodi, controlla che non ci siano ripetizione e che siano i tre concessi
-(ancora da testare)
+Similar to insertArgInField, but specifically for HTTP methods. 
+This function ensures that there are no duplicate methods and only the three allowed methods 
+(GET, POST, DELETE) are accepted. 
+(Still needs testing)
 */
 bool insertInMethods(std::istringstream& iss, std::string& Word, int look_for, Location& location, int n_line)
 {
@@ -168,7 +165,7 @@ bool insertInMethods(std::istringstream& iss, std::string& Word, int look_for, L
 			else
 			{
 				std::cout << "syntax error at line " << n_line
-				<< ": are your methods wright? unexpexted token: '" << Word << "'\n";//trovata parola errata
+				<< ": are your methods wright? unexpexted token: '" << Word << "'\n"; //trovata parola errata
 				return false;
 			}
 			location.addToLMethods(Word);
@@ -216,12 +213,12 @@ size_t max_body_detection(const std::string& word)
 		multiplier = 1024 * 1024;
 		sizeStr = sizeStr.substr(0, sizeStr.size() - 1);
 	}
-	else if (!isdigit(lastChar)) //fino qua vede se ci sono K M o nulla alla fine se trova altro muore
+	else if (!isdigit(lastChar)) // fino qua vede se ci sono K, M o nulla alla fine se trova altro muore
 	{
 		std::cout << "watch out! only M or K or blank (ex 1000) accepted: ";
 		return static_cast<size_t>(0);
 	}
-	// vede che stringa contenga solo cifre
+	// vede se la stringa contiene solo cifre
 	for (size_t i = 0; i < sizeStr.size(); ++i)
 	{
 		if (!isdigit(sizeStr[i]))
@@ -397,15 +394,18 @@ bool check_redirect_code(std::vector<std::string>& redirect, const std::string& 
 }
 
 /*
-lo stream iss controlla per ogni linea tutte le parole.
-la funzione va per stati definiti in look_for:
-il valore di look_for (sono macro)
-definisce COSA sta cercndo la funzione,
-se trova quello che cerca va avanti, altrimenti da errore
-man mano che trova riempe un vettore di istanze di server che
-vengono progressivamente compilate.
-se trova parole che non si aspetta va in errore, controlla che ci siano almeno root server_name e port per chiudere un server,
-controlla non ci siano ripetizioni di campi.
+The `iss` stream processes each line word by word.
+The function operates based on states defined by the `look_for` variable:
+- The value of `look_for` (defined as macros) determines what the function is currently expecting.
+- If the expected token is found, the function progresses; otherwise, it reports an error.
+
+As the function parses the configuration file, it populates a vector of `Server` instances, progressively filling in their fields.
+The function ensures:
+- At least `root`, `server_name`, and `listen` fields are defined before closing a server block.
+- No duplicate fields are present within a server or location block.
+- Syntax errors, such as unexpected tokens or missing semicolons, are detected and reported.
+
+If unexpected tokens are encountered or required fields are missing, the function transitions to an error state and terminates parsing.
 */
 int ParseFileLineByLine(const std::string& filePath, std::vector<Server>& servers)
 {

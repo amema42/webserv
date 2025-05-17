@@ -17,7 +17,7 @@ CGIHandler::CGIHandler(std::string rawpath): _rawPath(rawpath) {
 }
 
 void CGIHandler::sigalrm_handler(int sig) {
-    (void)sig; // Per evitare warning di parametro non usato
+    (void)sig;
     cgi_timeout_occurred = 1;
 }
 
@@ -68,17 +68,15 @@ std::string CGIHandler::executeScript(const std::string& method, const std::stri
         close(stdoutPipe[1]);
 
         struct sigaction sa;
-        sa.sa_handler = sigalrm_handler; // Imposta il nostro gestore
-        sigemptyset(&sa.sa_mask);        // Non bloccare altri segnali durante l'esecuzione del gestore
-        sa.sa_flags = 0;                 // Importante: NON impostare SA_RESTART.
-                                         // Questo assicura che le chiamate di sistema (es. read, write)
-                                         // vengano interrotte dal segnale e restituiscano EINTR.
+        sa.sa_handler = sigalrm_handler;
+        sigemptyset(&sa.sa_mask);
+        sa.sa_flags = 0;
+
         if (sigaction(SIGALRM, &sa, NULL) == -1) {
-            // Errore nell'impostare il gestore, tentativo di pulizia
             perror("sigaction failed");
-            close(stdoutPipe[0]); close(stdinPipe[1]); // Chiudi le pipe rimanenti
-            kill(pid, SIGKILL);    // Tenta di terminare il processo figlio
-            waitpid(pid, NULL, 0); // Raccogli il figlio per evitare zombie
+            close(stdoutPipe[0]); close(stdinPipe[1]); 
+            kill(pid, SIGKILL);   
+            waitpid(pid, NULL, 0); 
             throw CGIHandler::CGIerror("Failed to set SIGALRM handler");
         }
         
@@ -106,7 +104,7 @@ std::string CGIHandler::executeScript(const std::string& method, const std::stri
             if (bytesRead > 0) {
                 output.append(buffer, bytesRead);
             } else if (bytesRead == 0) {
-                break; //teah we read correctly every bite :D
+                break;
             } else {
                     if (cgi_timeout_occurred) {
                         break;
@@ -126,7 +124,7 @@ std::string CGIHandler::executeScript(const std::string& method, const std::stri
         int status;
         if (cgi_timeout_occurred) {
             kill(pid, SIGKILL);
-            waitpid(pid, NULL, 0); // Raccogli il processo figlio (evita zombie)
+            waitpid(pid, NULL, 0);
             throw CGIHandler::CGIerror("CGI script execution timed out");
         } else {
             if (waitpid(pid, &status, 0) == -1) {

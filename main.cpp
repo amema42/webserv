@@ -26,7 +26,7 @@ std::string config_example()
 "    error_page 405 www/error/405.html;\n"
 "    error_page 404 www/error/404.html;\n"
 "    location /get/ {\n"
-"        return 301 AAAAAA;\n"
+"        return 301 http://youtube.com/shorts/KUM2p2Weicg;\n"
 "        index index2.html;\n"
 "        autoindex off;\n"
 "    }\n"

@@ -1,6 +1,0 @@
-HTTP/1.1 201 Created
-Connection: keep-alive
-Content-Length: 56
-Content-Type: text/html
-Location: /uploads/upload_2025428_04723.json
-

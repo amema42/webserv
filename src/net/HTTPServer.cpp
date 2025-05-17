@@ -415,23 +415,26 @@ bool HTTPServer::handleClientRequest(ClientConnection *clientConn, const std::st
     if (sent < 0) {
         std::cerr << "Errore in write(): " << std::endl;
     }
-	if (sent >= 0) {
+	if (sent >= 0)
+    {
     // Gestione keep-alive o chiusura connessione
-    if (clientWantsKeepAlive) {
-        size_t headerEnd = rawRequest.find("\r\n\r\n");
-        size_t contentLength = 0;
-        std::map<std::string, std::string>::const_iterator it
-        = request.headers.find("Content-Length");
+        if (clientWantsKeepAlive) {
+            size_t headerEnd = rawRequest.find("\r\n\r\n");
+            size_t contentLength = 0;
+            std::map<std::string, std::string>::const_iterator it = request.headers.find("Content-Length");
         if (it != request.headers.end())
             contentLength = std::atoi(it->second.c_str());
         size_t total = headerEnd + 4 + contentLength;
         clientConn->removeProcessedRequest(total);
         return true;
-    } else {
+    }
+    else
+    {
         close(clientConn->getFd());
         return false;
     }
 	}
+    return false;
 }
 
 extern "C" void signalHandler(int signum) {
